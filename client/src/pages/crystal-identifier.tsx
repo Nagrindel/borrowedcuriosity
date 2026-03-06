@@ -50,7 +50,9 @@ export default function CrystalIdentifier() {
 
     try {
       const res = await fetch("/api/crystal/identify", { method: "POST", body: formData });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try { data = JSON.parse(text); } catch { throw new Error("Server returned an invalid response. Please try again."); }
       if (!res.ok) throw new Error(data.error || "Analysis failed");
       if (data.error && data.raw) {
         setResult({ name: "Unknown Crystal", raw: data.raw } as CrystalResult);

@@ -47,6 +47,13 @@ if (process.env.NODE_ENV === "development") {
   });
 }
 
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error("[server] Unhandled error:", err?.message || err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 const port = parseInt(process.env.PORT || "3000", 10);
 server.listen(port, "0.0.0.0", () => {
   console.log(`[borrowed-curiosity] running on http://localhost:${port}`);

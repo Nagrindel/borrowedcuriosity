@@ -52,8 +52,10 @@ export default function QuizPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: t, questionCount }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const text = await res.text();
+      let data: any;
+      try { data = JSON.parse(text); } catch { throw new Error("Server returned an invalid response. Please try again."); }
+      if (!res.ok) throw new Error(data.error || "Request failed");
       if (!data.questions?.length) throw new Error("No questions generated");
       setQuiz(data);
       setAnswers(new Array(data.questions.length).fill(null));

@@ -91,7 +91,7 @@ export default function Navbar() {
             <AnimatePresence>
               {moreOpen && (
                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
-                  className="absolute right-0 top-full mt-2 w-56 glass-strong rounded-xl border border-white/10 shadow-xl py-2 overflow-hidden">
+                  className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-white/10 shadow-2xl py-2 overflow-hidden bg-white dark:bg-gray-900">
                   {moreLinks.map(link => (
                     <Link key={link.href} href={link.href}>
                       <span onClick={() => setMoreOpen(false)}

@@ -31,7 +31,10 @@ export default function SacredStories() {
   const [expanding, setExpanding] = useState(false);
 
   useEffect(() => {
-    fetch("/api/stories").then(r => r.json()).then(d => { setStories(d.stories || []); setLoading(false); }).catch(() => setLoading(false));
+    fetch("/api/stories").then(r => r.text()).then(t => {
+      try { const d = JSON.parse(t); setStories(d.stories || []); } catch { /* ignore parse errors */ }
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   const openStory = async (story: Story) => {
