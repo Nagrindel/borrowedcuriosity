@@ -39,7 +39,10 @@ if (process.env.NODE_ENV === "development") {
 } else {
   const staticPath = path.resolve(import.meta.dirname, "..", "dist", "public");
   app.use(express.static(staticPath));
-  app.get("*", (_req, res) => {
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/api/")) {
+      return res.status(404).json({ error: "Not found" });
+    }
     res.sendFile(path.join(staticPath, "index.html"));
   });
 }
