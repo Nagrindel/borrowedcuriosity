@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes.js";
 import { registerAltaRoutes } from "./alta.js";
 import { registerNumerologyRoutes } from "./numerology-routes.js";
 import { registerStripeRoutes } from "./stripe.js";
+import { registerGroqFeatureRoutes } from "./groq-features.js";
 import { seedDatabase } from "./seed.js";
 
 const app = express();
@@ -23,6 +24,7 @@ registerStripeRoutes(app);
 registerRoutes(app);
 registerAltaRoutes(app);
 registerNumerologyRoutes(app);
+registerGroqFeatureRoutes(app);
 seedDatabase();
 
 const server = createServer(app);

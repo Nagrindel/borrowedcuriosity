@@ -61,6 +61,10 @@ export default function Footer() {
                 { href: "/crystals", label: "Crystal Guide" },
                 { href: "/gematria", label: "Gematria" },
                 { href: "/frequencies", label: "Frequency Generator" },
+                { href: "/identify", label: "Crystal Identifier" },
+                { href: "/journal", label: "Spiritual Journal" },
+                { href: "/stories", label: "Sacred Stories" },
+                { href: "/quiz", label: "Spiritual Quiz" },
                 { href: "/ask-alta", label: "Ask Alta" },
               ].map((link) => (
                 <li key={link.label}>

@@ -21,6 +21,10 @@ import RefundPolicy from "@/pages/legal/refund";
 import Disclaimer from "@/pages/legal/disclaimer";
 import OrderSuccess from "@/pages/order-success";
 import Frequencies from "@/pages/frequencies";
+import CrystalIdentifier from "@/pages/crystal-identifier";
+import Journal from "@/pages/journal";
+import SacredStories from "@/pages/sacred-stories";
+import QuizPage from "@/pages/quiz";
 import Admin from "@/pages/admin";
 import { AdminProvider } from "@/context/admin";
 
@@ -63,6 +67,10 @@ export default function App() {
               <Route path="/refund-policy" component={RefundPolicy} />
               <Route path="/disclaimer" component={Disclaimer} />
               <Route path="/frequencies" component={Frequencies} />
+              <Route path="/identify" component={CrystalIdentifier} />
+              <Route path="/journal" component={Journal} />
+              <Route path="/stories" component={SacredStories} />
+              <Route path="/quiz" component={QuizPage} />
               <Route path="/order-success" component={OrderSuccess} />
               <Route>
                 <div className="section-padding text-center">
