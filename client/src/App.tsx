@@ -20,6 +20,7 @@ import TermsOfService from "@/pages/legal/terms";
 import RefundPolicy from "@/pages/legal/refund";
 import Disclaimer from "@/pages/legal/disclaimer";
 import OrderSuccess from "@/pages/order-success";
+import Frequencies from "@/pages/frequencies";
 import Admin from "@/pages/admin";
 import { AdminProvider } from "@/context/admin";
 
@@ -61,6 +62,7 @@ export default function App() {
               <Route path="/terms" component={TermsOfService} />
               <Route path="/refund-policy" component={RefundPolicy} />
               <Route path="/disclaimer" component={Disclaimer} />
+              <Route path="/frequencies" component={Frequencies} />
               <Route path="/order-success" component={OrderSuccess} />
               <Route>
                 <div className="section-padding text-center">

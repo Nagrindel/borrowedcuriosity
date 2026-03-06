@@ -60,6 +60,7 @@ export default function Footer() {
                 { href: "/courses", label: "Free Courses" },
                 { href: "/crystals", label: "Crystal Guide" },
                 { href: "/gematria", label: "Gematria" },
+                { href: "/frequencies", label: "Frequency Generator" },
                 { href: "/ask-alta", label: "Ask Alta" },
               ].map((link) => (
                 <li key={link.label}>

@@ -15,6 +15,7 @@ const navLinks = [
   { href: "/store", label: "Store" },
   { href: "/courses", label: "Courses" },
   { href: "/crystals", label: "Crystals" },
+  { href: "/frequencies", label: "Frequencies" },
   { href: "/ask-alta", label: "Alta" },
 ];
 
