@@ -1,7 +1,63 @@
 import { db } from "./db.js";
 import { blogPosts, products, galleryItems, courses, lessons, threads, threadCards } from "../shared/schema.js";
+import { eq } from "drizzle-orm";
+
+const IMAGE_VERSION = 3;
+
+function migrateImages() {
+  const versionKey = "__image_version";
+  try {
+    const row = db.select().from(blogPosts).all()[0] as any;
+    if (!row) return;
+  } catch { return; }
+
+  const blogImageMap: Record<string, string> = {
+    "life-path-number-not-personality-test": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80",
+    "numerology-of-names": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
+    "crystals-vs-placebo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+    "handcrafting-salves": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+    "moon-phase-bracelet-design": "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80",
+    "gematria-when-letters-become-numbers": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80",
+    "master-numbers-overachievers": "https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800&q=80",
+    "placebo-effect-is-real": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80",
+  };
+  for (const [slug, url] of Object.entries(blogImageMap)) {
+    db.update(blogPosts).set({ imageUrl: url }).where(eq(blogPosts.slug, slug)).run();
+  }
+
+  const productImageMap: Record<string, string> = {
+    "Healing Salve": "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=600&q=80",
+    "Lavender Dream": "https://images.unsplash.com/photo-1498998754966-9f72acbc85b2?w=600&q=80",
+    "Forest Balm": "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80",
+    "Citrus Restore": "https://images.unsplash.com/photo-1557800636-894a64c1696f?w=600&q=80",
+    "Amethyst Pendant": "https://images.unsplash.com/photo-1515562141589-67f0d569b6bc?w=600&q=80",
+    "Crystal Ring": "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&q=80",
+    "Moon Phase Bracelet": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&q=80",
+    "Rose Quartz Earrings": "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80",
+    "Obsidian Shield Pendant": "https://images.unsplash.com/photo-1551122089-4e3e72477432?w=600&q=80",
+    "Hand-Written Numerology Report": "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80",
+  };
+  for (const [name, url] of Object.entries(productImageMap)) {
+    db.update(products).set({ imageUrl: url }).where(eq(products.name, name)).run();
+  }
+
+  const courseImageMap: Record<string, string> = {
+    "Introduction to Numerology": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=80",
+    "Self-Discovery Through Numbers": "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=600&q=80",
+    "Creative Journaling for the Curious": "https://images.unsplash.com/photo-1517842645767-c639042777db?w=600&q=80",
+    "Crystal Basics: The Honest Guide": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",
+    "Gematria and Sacred Numbers": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&q=80",
+  };
+  for (const [title, url] of Object.entries(courseImageMap)) {
+    db.update(courses).set({ imageUrl: url }).where(eq(courses.title, title)).run();
+  }
+
+  console.log(`[seed] Image URLs migrated to v${IMAGE_VERSION}`);
+}
 
 export function seedDatabase() {
+  migrateImages();
+
   const postCount = db.select().from(blogPosts).all().length;
   if (postCount > 0) return;
 
@@ -16,7 +72,7 @@ export function seedDatabase() {
       category: "Numerology",
       readingTime: "6 min read",
       gradient: "from-brand-400 to-brand-700",
-      imageUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80",
     },
     {
       title: "The Numerology of Names: What's in Yours?",
@@ -26,7 +82,7 @@ export function seedDatabase() {
       category: "Numerology",
       readingTime: "8 min read",
       gradient: "from-violet-400 to-purple-600",
-      imageUrl: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
     },
     {
       title: "Crystals vs. Placebo: A Skeptic's Guide",
@@ -36,7 +92,7 @@ export function seedDatabase() {
       category: "Curiosity",
       readingTime: "5 min read",
       gradient: "from-amber-400 to-orange-600",
-      imageUrl: "https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
     },
     {
       title: "Handcrafting Salves: Why We Do It Wrong (On Purpose)",
@@ -46,7 +102,7 @@ export function seedDatabase() {
       category: "Making",
       readingTime: "7 min read",
       gradient: "from-emerald-500 to-teal-700",
-      imageUrl: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
     },
     {
       title: "The Moon Phase Bracelet: Design Notes",
@@ -56,7 +112,7 @@ export function seedDatabase() {
       category: "Jewelry",
       readingTime: "4 min read",
       gradient: "from-rose-400 to-pink-600",
-      imageUrl: "https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80",
     },
     {
       title: "Gematria: When Letters Become Numbers",
@@ -66,7 +122,7 @@ export function seedDatabase() {
       category: "Tools",
       readingTime: "5 min read",
       gradient: "from-cyan-400 to-blue-600",
-      imageUrl: "https://images.unsplash.com/photo-1518173946687-a1e6b3bf0fa8?w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80",
     },
     {
       title: "Master Numbers: The Overachievers of Numerology",
@@ -86,40 +142,40 @@ export function seedDatabase() {
       category: "Curiosity",
       readingTime: "5 min read",
       gradient: "from-teal-400 to-cyan-600",
-      imageUrl: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&q=80",
+      imageUrl: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80",
     },
   ]).run();
 
   db.insert(products).values([
-    { name: "Healing Salve", description: "Handcrafted with more love than your ex ever gave you. Real ingredients, real results, zero drama.", price: 24, category: "salve", gradient: "from-amber-400 to-orange-600", imageUrl: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&q=80" },
-    { name: "Lavender Dream", description: "Because your stress levels deserve better than a generic candle. Calm in a jar, minus the woo-woo.", price: 18, category: "salve", gradient: "from-violet-400 to-purple-600", imageUrl: "https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80" },
-    { name: "Forest Balm", description: "Smells like a walk in the woods, minus the mosquitoes. Earthy, grounding, and actually useful.", price: 22, category: "salve", gradient: "from-emerald-500 to-teal-700", imageUrl: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=600&q=80" },
-    { name: "Citrus Restore", description: "When you need a wake-up call that doesn't involve caffeine. Bright, zesty, and surprisingly soothing.", price: 20, category: "salve", gradient: "from-yellow-400 to-orange-500", imageUrl: "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?w=600&q=80" },
-    { name: "Amethyst Pendant", description: "A crystal that actually looks good on you. No promises about chakras, but it'll turn heads.", price: 38, category: "jewelry", gradient: "from-brand-400 to-brand-700", imageUrl: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80" },
-    { name: "Crystal Ring", description: "Wear your intentions on your finger. Or just wear it because it's pretty. We don't judge.", price: 32, category: "jewelry", gradient: "from-rose-400 to-pink-600", imageUrl: "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=600&q=80" },
-    { name: "Moon Phase Bracelet", description: "Track the lunar cycle without checking your phone. Stylish and slightly witchy. The best combo.", price: 45, category: "jewelry", gradient: "from-slate-400 to-indigo-600", imageUrl: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=600&q=80" },
-    { name: "Rose Quartz Earrings", description: "The love stone, now for your ears. Subtle enough for work, meaningful enough for you.", price: 28, category: "jewelry", gradient: "from-pink-300 to-rose-500", imageUrl: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80" },
-    { name: "Obsidian Shield Pendant", description: "Protection you can wear. Black obsidian wrapped in silver. Looks sharp, feels grounding.", price: 42, category: "jewelry", gradient: "from-gray-600 to-gray-900", imageUrl: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=600&q=80" },
-    { name: "Hand-Written Numerology Report", description: "A full multi-page numerology analysis written by an actual human. Not AI-generated. Your chart, decoded with care, insight, and the occasional witty observation.", price: 55, category: "salve", gradient: "from-brand-500 to-violet-700", imageUrl: "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?w=600&q=80" },
+    { name: "Healing Salve", description: "Handcrafted with more love than your ex ever gave you. Real ingredients, real results, zero drama.", price: 24, category: "salve", gradient: "from-amber-400 to-orange-600", imageUrl: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=600&q=80" },
+    { name: "Lavender Dream", description: "Because your stress levels deserve better than a generic candle. Calm in a jar, minus the woo-woo.", price: 18, category: "salve", gradient: "from-violet-400 to-purple-600", imageUrl: "https://images.unsplash.com/photo-1498998754966-9f72acbc85b2?w=600&q=80" },
+    { name: "Forest Balm", description: "Smells like a walk in the woods, minus the mosquitoes. Earthy, grounding, and actually useful.", price: 22, category: "salve", gradient: "from-emerald-500 to-teal-700", imageUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80" },
+    { name: "Citrus Restore", description: "When you need a wake-up call that doesn't involve caffeine. Bright, zesty, and surprisingly soothing.", price: 20, category: "salve", gradient: "from-yellow-400 to-orange-500", imageUrl: "https://images.unsplash.com/photo-1557800636-894a64c1696f?w=600&q=80" },
+    { name: "Amethyst Pendant", description: "A crystal that actually looks good on you. No promises about chakras, but it'll turn heads.", price: 38, category: "jewelry", gradient: "from-brand-400 to-brand-700", imageUrl: "https://images.unsplash.com/photo-1515562141589-67f0d569b6bc?w=600&q=80" },
+    { name: "Crystal Ring", description: "Wear your intentions on your finger. Or just wear it because it's pretty. We don't judge.", price: 32, category: "jewelry", gradient: "from-rose-400 to-pink-600", imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&q=80" },
+    { name: "Moon Phase Bracelet", description: "Track the lunar cycle without checking your phone. Stylish and slightly witchy. The best combo.", price: 45, category: "jewelry", gradient: "from-slate-400 to-indigo-600", imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&q=80" },
+    { name: "Rose Quartz Earrings", description: "The love stone, now for your ears. Subtle enough for work, meaningful enough for you.", price: 28, category: "jewelry", gradient: "from-pink-300 to-rose-500", imageUrl: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80" },
+    { name: "Obsidian Shield Pendant", description: "Protection you can wear. Black obsidian wrapped in silver. Looks sharp, feels grounding.", price: 42, category: "jewelry", gradient: "from-gray-600 to-gray-900", imageUrl: "https://images.unsplash.com/photo-1551122089-4e3e72477432?w=600&q=80" },
+    { name: "Hand-Written Numerology Report", description: "A full multi-page numerology analysis written by an actual human. Not AI-generated. Your chart, decoded with care, insight, and the occasional witty observation.", price: 55, category: "salve", gradient: "from-brand-500 to-violet-700", imageUrl: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80" },
   ]).run();
 
   db.insert(galleryItems).values([
-    { title: "Moon Phase Study", description: "A 30-day timelapse that proves the moon has better consistency than my morning routine.", type: "photo", gradient: "from-violet-500 via-purple-600 to-indigo-700", mediaUrl: "https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?w=800&q=80" },
-    { title: "Crystal Collection", description: "Our crystal collection laid out for your viewing pleasure. Yes, we organize our rocks by color.", type: "photo", gradient: "from-amber-500 via-orange-600 to-rose-600", mediaUrl: "https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?w=800&q=80" },
+    { title: "Moon Phase Study", description: "A 30-day timelapse that proves the moon has better consistency than my morning routine.", type: "photo", gradient: "from-violet-500 via-purple-600 to-indigo-700", mediaUrl: "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80" },
+    { title: "Crystal Collection", description: "Our crystal collection laid out for your viewing pleasure. Yes, we organize our rocks by color.", type: "photo", gradient: "from-amber-500 via-orange-600 to-rose-600", mediaUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80" },
     { title: "Life Path Cheat Sheet", description: "Printable PDF for when you need to explain numerology to your skeptical aunt at Thanksgiving.", type: "download", gradient: "from-emerald-500 via-teal-600 to-cyan-600", downloadUrl: "#", mediaUrl: "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?w=800&q=80" },
-    { title: "Salve Making Process", description: "Behind-the-scenes of our handcrafted salves. Spoiler: it involves a lot of stirring and intention.", type: "photo", gradient: "from-rose-500 via-pink-600 to-fuchsia-600", mediaUrl: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800&q=80" },
-    { title: "Sacred Geometry Art", description: "Aesthetic wallpaper featuring sacred geometry patterns. Your laptop deserves better than stock photos.", type: "download", gradient: "from-slate-500 via-indigo-600 to-violet-700", downloadUrl: "#", mediaUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80" },
+    { title: "Salve Making Process", description: "Behind-the-scenes of our handcrafted salves. Spoiler: it involves a lot of stirring and intention.", type: "photo", gradient: "from-rose-500 via-pink-600 to-fuchsia-600", mediaUrl: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=800&q=80" },
+    { title: "Sacred Geometry Art", description: "Aesthetic wallpaper featuring sacred geometry patterns. Your laptop deserves better than stock photos.", type: "download", gradient: "from-slate-500 via-indigo-600 to-violet-700", downloadUrl: "#", mediaUrl: "https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=800&q=80" },
     { title: "Workshop Studio", description: "Where the magic (and occasional chaos) happens. Come see where we make the things.", type: "photo", gradient: "from-brand-500 via-violet-600 to-purple-700", mediaUrl: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80" },
     { title: "Numerology 101 Workbook", description: "Free downloadable workbook. Because learning should be free, and so should your curiosity.", type: "download", gradient: "from-cyan-500 via-blue-600 to-indigo-600", downloadUrl: "#", mediaUrl: "https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800&q=80" },
-    { title: "Sunset Meditation", description: "Five minutes of golden hour vibes. No talking, just vibes. Your mental health will thank you.", type: "photo", gradient: "from-gold-500 via-amber-600 to-orange-600", mediaUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80" },
+    { title: "Sunset Meditation", description: "Five minutes of golden hour vibes. No talking, just vibes. Your mental health will thank you.", type: "photo", gradient: "from-gold-500 via-amber-600 to-orange-600", mediaUrl: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=800&q=80" },
   ]).run();
 
   db.insert(courses).values([
-    { title: "Introduction to Numerology", description: "From zero to hero in the world of numbers. Learn the basics without the woo-woo overwhelm. Your birth date has stories to tell.", gradient: "from-brand-500 to-violet-600", imageUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&q=80" },
+    { title: "Introduction to Numerology", description: "From zero to hero in the world of numbers. Learn the basics without the woo-woo overwhelm. Your birth date has stories to tell.", gradient: "from-brand-500 to-violet-600", imageUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=80" },
     { title: "Self-Discovery Through Numbers", description: "Go deeper than 'what's my number?' Learn to use numerology as a mirror, one that doesn't judge your life choices. Mostly.", gradient: "from-rose-500 to-pink-600", imageUrl: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=600&q=80" },
     { title: "Creative Journaling for the Curious", description: "Journaling that doesn't feel like homework. Prompts, practices, and permission to be messy.", gradient: "from-amber-500 to-orange-600", imageUrl: "https://images.unsplash.com/photo-1517842645767-c639042777db?w=600&q=80" },
-    { title: "Crystal Basics: The Honest Guide", description: "Everything you actually need to know about crystals. What they are, what people believe, what science says.", gradient: "from-emerald-500 to-teal-600", imageUrl: "https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?w=600&q=80" },
-    { title: "Gematria and Sacred Numbers", description: "The ancient art of turning letters into numbers and finding meaning in the math. Decoded for curious minds.", gradient: "from-cyan-500 to-blue-600", imageUrl: "https://images.unsplash.com/photo-1518173946687-a1e6b3bf0fa8?w=600&q=80" },
+    { title: "Crystal Basics: The Honest Guide", description: "Everything you actually need to know about crystals. What they are, what people believe, what science says.", gradient: "from-emerald-500 to-teal-600", imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80" },
+    { title: "Gematria and Sacred Numbers", description: "The ancient art of turning letters into numbers and finding meaning in the math. Decoded for curious minds.", gradient: "from-cyan-500 to-blue-600", imageUrl: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&q=80" },
   ]).run();
 
   const courseRows = db.select().from(courses).all();
