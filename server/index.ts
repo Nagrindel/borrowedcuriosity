@@ -45,4 +45,7 @@ if (process.env.NODE_ENV === "development") {
 const port = parseInt(process.env.PORT || "3000", 10);
 server.listen(port, "0.0.0.0", () => {
   console.log(`[borrowed-curiosity] running on http://localhost:${port}`);
+  console.log(`[env] GROQ_API_KEY: ${process.env.GROQ_API_KEY ? "set" : "MISSING"}`);
+  console.log(`[env] ADMIN_PASSWORD: ${process.env.ADMIN_PASSWORD ? "set" : "MISSING"}`);
+  console.log(`[env] NODE_ENV: ${process.env.NODE_ENV || "not set"}`);
 });
