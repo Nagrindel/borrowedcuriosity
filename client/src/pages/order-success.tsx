@@ -10,6 +10,8 @@ interface OrderData {
   items: string;
   total: number;
   status: string;
+  orderType: string;
+  customerNotes: string | null;
   paymentMethod: string;
   createdAt: string;
 }
@@ -123,7 +125,9 @@ export default function OrderSuccess() {
           </h1>
           <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
             {isPaid
-              ? "Thank you for your purchase! Your order has been received and we're getting it ready."
+              ? order.orderType === "service" || order.orderType === "mixed"
+                ? "Thank you for your order! Nicole will personally craft your report and deliver it to your email within 3-5 business days."
+                : "Thank you for your purchase! Your order has been received and we're getting it ready."
               : "Your payment is being processed. You'll receive a confirmation email shortly."}
           </p>
           {isDemo && (
@@ -180,6 +184,26 @@ export default function OrderSuccess() {
             <span className="font-display font-semibold">Total</span>
             <span className="font-display font-bold text-xl text-brand-500">${order.total.toFixed(2)}</span>
           </div>
+
+          {(order.orderType === "service" || order.orderType === "mixed") && order.customerNotes && (() => {
+            try {
+              const notes = JSON.parse(order.customerNotes);
+              if (!Array.isArray(notes) || notes.length === 0) return null;
+              return (
+                <div className="mt-6 pt-6 border-t border-white/5">
+                  <p className="text-sm font-medium mb-3 text-violet-400">Report Details Submitted</p>
+                  {notes.map((n: any, i: number) => (
+                    <div key={i} className="text-sm space-y-1">
+                      <p><span className="text-gray-500">Name:</span> {n.fullName}</p>
+                      <p><span className="text-gray-500">Birth Date:</span> {n.birthDate}</p>
+                      <p><span className="text-gray-500">Delivery Email:</span> {n.email}</p>
+                      {n.specialRequests && <p><span className="text-gray-500">Notes:</span> {n.specialRequests}</p>}
+                    </div>
+                  ))}
+                </div>
+              );
+            } catch { return null; }
+          })()}
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}

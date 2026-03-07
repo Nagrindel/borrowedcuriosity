@@ -40,7 +40,8 @@ export const products = sqliteTable("products", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   price: real("price").notNull(),
-  category: text("category").notNull(), // "salve" | "jewelry"
+  category: text("category").notNull(), // "salve" | "jewelry" | "service"
+  productType: text("product_type").notNull().default("physical"), // "physical" | "service" | "digital"
   gradient: text("gradient").notNull(),
   imageUrl: text("image_url"),
   inStock: integer("in_stock", { mode: "boolean" }).notNull().default(true),
@@ -54,7 +55,9 @@ export const orders = sqliteTable("orders", {
   customerName: text("customer_name").notNull(),
   items: text("items").notNull(), // JSON stringified array
   total: real("total").notNull(),
-  status: text("status").notNull().default("pending"), // pending | paid | shipped | delivered
+  status: text("status").notNull().default("pending"), // pending | paid | processing | shipped | delivered | completed
+  orderType: text("order_type").notNull().default("physical"), // "physical" | "service" | "mixed"
+  customerNotes: text("customer_notes"), // JSON: birth details, special requests, etc.
   paymentMethod: text("payment_method"),
   stripeSessionId: text("stripe_session_id"),
   stripePaymentIntentId: text("stripe_payment_intent_id"),

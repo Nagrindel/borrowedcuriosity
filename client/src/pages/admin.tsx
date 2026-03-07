@@ -249,7 +249,7 @@ function ProductsTab({ adminFetch }: { adminFetch: any }) {
   const load = () => { setLoading(true); adminFetch("/api/admin/products").then((d: any) => { setItems(d); setLoading(false); }); };
   useEffect(load, []);
 
-  const empty = { name: "", description: "", price: 0, category: "salve", gradient: GRADIENTS[0], imageUrl: null, inStock: true };
+  const empty = { name: "", description: "", price: 0, category: "salve", productType: "physical", gradient: GRADIENTS[0], imageUrl: null, inStock: true };
 
   const save = async (data: any, id?: number) => {
     if (id) await adminFetch(`/api/admin/products/${id}`, { method: "PUT", body: JSON.stringify(data) });
@@ -280,11 +280,17 @@ function ProductsTab({ adminFetch }: { adminFetch: any }) {
           <ImageUpload value={editing.imageUrl} onChange={url => setEditing({ ...editing, imageUrl: url })} label="Product Image" />
           <input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} placeholder="Name" className="admin-input" />
           <textarea value={editing.description} onChange={e => setEditing({ ...editing, description: e.target.value })} placeholder="Description" rows={3} className="admin-input resize-y" />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <input type="number" step="0.01" value={editing.price} onChange={e => setEditing({ ...editing, price: parseFloat(e.target.value) || 0 })} placeholder="Price" className="admin-input" />
             <select value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })} className="admin-input">
               <option value="salve">Salve</option>
               <option value="jewelry">Jewelry</option>
+              <option value="service">Service</option>
+            </select>
+            <select value={editing.productType || "physical"} onChange={e => setEditing({ ...editing, productType: e.target.value })} className="admin-input">
+              <option value="physical">Physical</option>
+              <option value="service">Service (requires customer details)</option>
+              <option value="digital">Digital Download</option>
             </select>
           </div>
           <div>
@@ -670,6 +676,7 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+  const [filter, setFilter] = useState<string>("all");
 
   const load = () => { setLoading(true); adminFetch("/api/admin/orders").then((d: any) => { setItems(d); setLoading(false); }); };
   useEffect(load, []);
@@ -682,10 +689,20 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
   const statusColor = (s: string) => {
     switch (s) {
       case "paid": return "bg-green-500/20 text-green-400";
+      case "processing": return "bg-brand-500/20 text-brand-400";
       case "shipped": return "bg-blue-500/20 text-blue-400";
       case "delivered": return "bg-emerald-500/20 text-emerald-400";
+      case "completed": return "bg-emerald-500/20 text-emerald-400";
       case "cancelled": return "bg-red-500/20 text-red-400";
       default: return "bg-amber-500/20 text-amber-400";
+    }
+  };
+
+  const orderTypeBadge = (type: string) => {
+    switch (type) {
+      case "service": return "bg-violet-500/20 text-violet-400";
+      case "mixed": return "bg-amber-500/20 text-amber-400";
+      default: return "bg-cyan-500/20 text-cyan-400";
     }
   };
 
@@ -693,33 +710,60 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
     try { return JSON.parse(itemsJson); } catch { return []; }
   };
 
+  const parseNotes = (notes: string | null) => {
+    if (!notes) return null;
+    try { return JSON.parse(notes); } catch { return null; }
+  };
+
   if (loading) return <Loading />;
 
-  const paidTotal = items.filter(o => o.status === "paid" || o.status === "shipped" || o.status === "delivered")
-    .reduce((sum, o) => sum + o.total, 0);
+  const paidStatuses = ["paid", "processing", "shipped", "delivered", "completed"];
+  const paidTotal = items.filter(o => paidStatuses.includes(o.status)).reduce((sum, o) => sum + o.total, 0);
+  const pendingService = items.filter(o => (o.orderType === "service" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing")).length;
+
+  const filtered = filter === "all" ? items
+    : filter === "service" ? items.filter(o => o.orderType === "service" || o.orderType === "mixed")
+    : filter === "needs-action" ? items.filter(o => o.status === "paid" || o.status === "processing")
+    : items;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-bold">Orders ({items.length})</h1>
-        {paidTotal > 0 && (
-          <span className="text-sm text-green-400 font-medium">Revenue: ${paidTotal.toFixed(2)}</span>
-        )}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold">Orders ({items.length})</h1>
+          <div className="flex items-center gap-4 mt-1">
+            {paidTotal > 0 && <span className="text-xs text-green-400 font-medium">Revenue: ${paidTotal.toFixed(2)}</span>}
+            {pendingService > 0 && <span className="text-xs text-violet-400 font-medium">{pendingService} report{pendingService > 1 ? "s" : ""} to write</span>}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {["all", "needs-action", "service"].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === f ? "bg-brand-500/15 text-brand-400" : "text-gray-500 hover:text-gray-300 glass"}`}>
+              {f === "all" ? "All" : f === "needs-action" ? "Needs Action" : "Reports"}
+            </button>
+          ))}
+        </div>
       </div>
-      {items.length === 0 ? <p className="text-gray-500 text-sm">No orders yet.</p> : (
+      {filtered.length === 0 ? <p className="text-gray-500 text-sm">No orders match this filter.</p> : (
         <div className="space-y-2">
-          {items.map(o => {
+          {filtered.map(o => {
             const orderItems = parseItems(o.items);
+            const notes = parseNotes(o.customerNotes);
             const isExpanded = expandedOrder === o.id;
+            const isService = o.orderType === "service" || o.orderType === "mixed";
             return (
-              <div key={o.id} className="glass rounded-xl p-4">
+              <div key={o.id} className={`glass rounded-xl p-4 ${isService && (o.status === "paid" || o.status === "processing") ? "border border-violet-500/30" : ""}`}>
                 <div className="flex items-center gap-4">
-                  <Package className="w-5 h-5 text-amber-400 shrink-0" />
+                  <Package className={`w-5 h-5 shrink-0 ${isService ? "text-violet-400" : "text-amber-400"}`} />
                   <div className="flex-1 min-w-0" role="button" onClick={() => setExpandedOrder(isExpanded ? null : o.id)}>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-sm">#{o.id}</p>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${statusColor(o.status)}`}>
                         {o.status}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${orderTypeBadge(o.orderType || "physical")}`}>
+                        {o.orderType === "service" ? "Report" : o.orderType === "mixed" ? "Mixed" : "Physical"}
                       </span>
                       {o.paymentMethod === "stripe" && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-500/20 text-brand-400">Stripe</span>
@@ -730,11 +774,25 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
                       {" "}&middot; ${o.total.toFixed(2)} &middot; {new Date(o.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <select value={o.status} onChange={e => updateStatus(o.id, e.target.value)} className="admin-input text-xs py-1 w-28">
+                  <select value={o.status} onChange={e => updateStatus(o.id, e.target.value)} className="admin-input text-xs py-1 w-32">
                     <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
+                    <option value="processing">Processing</option>
+                    {isService ? (
+                      <option value="completed">Completed</option>
+                    ) : (
+                      <>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                      </>
+                    )}
+                    {o.orderType === "mixed" && (
+                      <>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="completed">Completed</option>
+                      </>
+                    )}
                     <option value="cancelled">Cancelled</option>
                   </select>
                   <button onClick={() => setExpandedOrder(isExpanded ? null : o.id)} className="p-2 rounded-lg hover:bg-brand-500/10">
@@ -744,6 +802,39 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
 
                 {isExpanded && (
                   <div className="mt-4 ml-9 space-y-3">
+                    {notes && Array.isArray(notes) && notes.length > 0 && (
+                      <div className="rounded-xl bg-violet-500/10 border border-violet-500/20 p-4 space-y-3">
+                        <p className="text-xs font-medium text-violet-400 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5" /> Report Details (Customer Submitted)
+                        </p>
+                        {notes.map((note: any, i: number) => (
+                          <div key={i} className="space-y-1.5">
+                            {note.productName && <p className="text-xs text-gray-400 font-medium">{note.productName}</p>}
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-gray-500">Full Name:</span>
+                                <p className="font-medium">{note.fullName}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Birth Date:</span>
+                                <p className="font-medium">{note.birthDate}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Delivery Email:</span>
+                                <p className="font-medium">{note.email}</p>
+                              </div>
+                            </div>
+                            {note.specialRequests && (
+                              <div className="text-xs">
+                                <span className="text-gray-500">Special Requests:</span>
+                                <p className="mt-0.5 text-gray-300 italic">{note.specialRequests}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {orderItems.length > 0 && (
                       <div className="space-y-1.5">
                         <p className="text-xs text-gray-500 font-medium mb-1">Items</p>

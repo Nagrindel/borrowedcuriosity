@@ -155,5 +155,8 @@ sqlite.exec(`
 try { sqlite.exec("ALTER TABLE courses ADD COLUMN image_url TEXT"); } catch {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN stripe_session_id TEXT"); } catch {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN stripe_payment_intent_id TEXT"); } catch {}
+try { sqlite.exec("ALTER TABLE products ADD COLUMN product_type TEXT NOT NULL DEFAULT 'physical'"); } catch {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN order_type TEXT NOT NULL DEFAULT 'physical'"); } catch {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN customer_notes TEXT"); } catch {}
 
 export const db = drizzle(sqlite, { schema });

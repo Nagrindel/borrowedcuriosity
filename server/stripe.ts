@@ -45,9 +45,11 @@ export function registerStripeRoutes(app: Express) {
 
   app.post("/api/checkout", async (req: Request, res: Response) => {
     try {
-      const { items, customerEmail } = req.body as {
+      const { items, customerEmail, orderType, customerNotes } = req.body as {
         items: LineItem[];
         customerEmail?: string;
+        orderType?: string;
+        customerNotes?: string;
       };
 
       if (!items?.length) {
@@ -76,6 +78,8 @@ export function registerStripeRoutes(app: Express) {
           items: JSON.stringify(items.map(i => ({ id: i.productId, name: i.name, price: i.price, quantity: i.quantity }))),
           total,
           status: "paid",
+          orderType: orderType || "physical",
+          customerNotes: customerNotes || null,
           paymentMethod: "stripe (demo)",
           stripeSessionId: demoSessionId,
         }).run();
@@ -125,6 +129,8 @@ export function registerStripeRoutes(app: Express) {
         items: JSON.stringify(items.map(i => ({ id: i.productId, name: i.name, price: i.price, quantity: i.quantity }))),
         total,
         status: "pending",
+        orderType: orderType || "physical",
+        customerNotes: customerNotes || null,
         paymentMethod: "stripe",
         stripeSessionId: session.id,
       }).run();

@@ -72,6 +72,11 @@ export function seedDatabase() {
     console.log("[seed] Synced missing blog posts");
   }
 
+  db.update(products)
+    .set({ category: "service", productType: "service" })
+    .where(eq(products.name, "Hand-Written Numerology Report"))
+    .run();
+
   const productCount = db.select().from(products).all().length;
   if (productCount > 0) return;
 
@@ -87,7 +92,7 @@ export function seedDatabase() {
     { name: "Moon Phase Bracelet", description: "Track the lunar cycle without checking your phone. Stylish and slightly witchy. The best combo.", price: 45, category: "jewelry", gradient: "from-slate-400 to-indigo-600", imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&q=80" },
     { name: "Rose Quartz Earrings", description: "The love stone, now for your ears. Subtle enough for work, meaningful enough for you.", price: 28, category: "jewelry", gradient: "from-pink-300 to-rose-500", imageUrl: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=600&q=80" },
     { name: "Obsidian Shield Pendant", description: "Protection you can wear. Black obsidian wrapped in silver. Looks sharp, feels grounding.", price: 42, category: "jewelry", gradient: "from-gray-600 to-gray-900", imageUrl: "https://images.unsplash.com/photo-1551122089-4e3e72477432?w=600&q=80" },
-    { name: "Hand-Written Numerology Report", description: "A full multi-page numerology analysis written by an actual human. Not AI-generated. Your chart, decoded with care, insight, and the occasional witty observation.", price: 55, category: "salve", gradient: "from-brand-500 to-violet-700", imageUrl: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80" },
+    { name: "Hand-Written Numerology Report", description: "A full multi-page numerology analysis written by an actual human. Not AI-generated. Your chart, decoded with care, insight, and the occasional witty observation.", price: 55, category: "service", productType: "service", gradient: "from-brand-500 to-violet-700", imageUrl: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80" },
   ]).run();
 
   db.insert(galleryItems).values([
