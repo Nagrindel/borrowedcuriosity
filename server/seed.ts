@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { blogPosts, products, galleryItems, courses, lessons, threads, threadCards } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
+import { NICOLE_BLOG_POSTS } from "./nicole-posts.js";
 
 const IMAGE_VERSION = 3;
 
@@ -10,20 +11,6 @@ function migrateImages() {
     const row = db.select().from(blogPosts).all()[0] as any;
     if (!row) return;
   } catch { return; }
-
-  const blogImageMap: Record<string, string> = {
-    "life-path-number-not-personality-test": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80",
-    "numerology-of-names": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
-    "crystals-vs-placebo": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-    "handcrafting-salves": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-    "moon-phase-bracelet-design": "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80",
-    "gematria-when-letters-become-numbers": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80",
-    "master-numbers-overachievers": "https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800&q=80",
-    "placebo-effect-is-real": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80",
-  };
-  for (const [slug, url] of Object.entries(blogImageMap)) {
-    db.update(blogPosts).set({ imageUrl: url }).where(eq(blogPosts.slug, slug)).run();
-  }
 
   const productImageMap: Record<string, string> = {
     "Healing Salve": "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=600&q=80",
@@ -53,139 +40,38 @@ function migrateImages() {
   }
 
   console.log(`[seed] Image URLs migrated to v${IMAGE_VERSION}`);
-
-  const nicolePosts = [
-    {
-      title: "The Mysterious Influence of Your Name: Unraveling the Secrets of Numerology and Identity Shifts",
-      slug: "mysterious-influence-of-your-name",
-      excerpt: "Names hold remarkable power and meaning, serving as more than just labels. They reflect our identity and resonate with vibrational frequencies that can shape various aspects of our lives.",
-      content: `Names hold remarkable power and meaning, serving as more than just labels. They reflect our identity and resonate with vibrational frequencies that can shape various aspects of our lives.\n\nUnderstanding Numerology: A Brief Overview\n\nNumerology is an ancient practice that studies the significance of numbers and their bond with the universe. Each number carries unique vibrational traits, influencing personality, life paths, and opportunities. By translating names into numbers, numerology helps individuals uncover insights about themselves.\n\nUsing the Pythagorean chart, each letter corresponds to a number between 1 and 9:\n\nA, J, S = 1 | B, K, T = 2 | C, L, U = 3 | D, M, V = 4 | E, N, W = 5 | F, O, X = 6 | G, P, Y = 7 | H, Q, Z = 8 | I, R = 9\n\nThe Vibration of Your Name\n\nNames resonate at specific frequencies that can influence our lives profoundly. Each individual's name interacts with energies based on its letters. According to numerology, these vibrations can harmonize with the universe, impacting personality, relationships, career paths, and life experiences.\n\nWhen someone speaks your name, it creates a sound that resonates within you and those who hear it. This vibrational imprinting forges an energetic bond between an individual and their environment. Our names evoke emotions, trigger memories, and shape perceptions.\n\nResearch indicates that names can affect our life experiences. A 2020 survey revealed that 30% of hiring managers admitted they formed biases based merely on a candidate's name. By recognizing the vibrational imprint of our names, we can become more intentional about how we embody them.\n\nIdentity Shifts and Personal Transformation\n\nAs we evolve, we may feel the urge to change our names or the way we use them. Understanding the numerological implications of a name change is crucial. A new name can carry different vibrations that may open fresh opportunities.\n\nBy exploring the numerology of both old and new names, individuals can comprehend the energies they are embracing and how these may influence their life path.\n\nHow to Uncover the Vibration of Your Name\n\n1. Calculate Your Name Number: Begin by calculating your name's numerical value using the chart above. Reduce this total to a single-digit number between 1 and 9, known as your "Expression Number."\n\n2. Explore the Meaning of Your Expression Number: Each number carries specific meanings and attributes. Research the significance of your number to gain insights into your personality, strengths, weaknesses, and potential life path.\n\n3. Reflect on Your Current Identity: Think about how your name resonates with you. Does it represent who you are or who you want to be?\n\n4. Consider Potential Name Changes: If your name feels misaligned, contemplate a new name that better reflects your identity. Calculate the vibrational significance of any potential names to ensure they match your aspirations.\n\nThe connection between your name, its vibrational imprint, and your identity is a captivating journey worth exploring. Let your name transcend mere identification. Use it as a guide to your essence, leading you toward growth and fulfillment.`,
-      category: "Numerology",
-      readingTime: "8 min read",
-      gradient: "from-violet-400 to-purple-700",
-      imageUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
-    },
-    {
-      title: "Cracking the Code: Unleashing Your True Luck Potential through Number Patterns and Frequency Alignment",
-      slug: "cracking-the-code-luck-potential",
-      excerpt: "Luck often seems random, like flipping a coin and hoping for heads. But what if you could create the right environment for good fortune?",
-      content: `Luck often seems random, like flipping a coin and hoping for heads. But what if you could create the right environment for good fortune? By understanding signs of synchronicity, raising your personal frequency, and following the cycles of time, you can shape your luck.\n\nThe Mystique of Luck: Understanding Hidden Patterns\n\nWe've all had moments that felt like pure chance, like running into an old friend just when you needed advice. These instances, often regarded as coincidences, hold deeper meanings.\n\nRecognizing number patterns is your first step in unlocking this potential. Many cultures have long attributed mystical significance to numbers.\n\nNumber patterns refer to sequences or repetitions that appear often in your life. This might be seeing 555 on the clock, encountering a significant date multiple times, or noting a recurring number in various aspects of your day-to-day experiences.\n\nBy being aware of these patterns, you can make choices that align with these universal signals instead of passively drifting through life.\n\nThe Energy Shift: Raising Your Frequency for Luck\n\nLuck is not just about external events; it stems from your inner state. Raising your frequency means adopting a mindset and lifestyle that attracts positivity.\n\nIn spiritual terms, frequency refers to your vibrational energy and how it harmonizes with the energy around you. When you operate at a higher frequency, you draw in positive circumstances and people.\n\nHow to raise your frequency:\n\n1. Meditation: Spend even just five minutes daily meditating. Studies show that meditation can reduce stress by up to 40%, boosting overall well-being.\n\n2. Gratitude Practices: Keep a gratitude journal. Write down at least three things you appreciate each day.\n\n3. Surround Yourself with Positive Influences: Spend time with uplifting people and engage with inspiring media.\n\n4. Engage in Activities You Love: Pursue hobbies that bring you joy. Engaging in passions increases your vibrational energy and naturally invites luck into your life.\n\nThe Cycles of Time: Timing is Everything\n\nUnderstanding the right timing for actions can significantly impact their outcomes. Life functions in rhythms, whether it's the moon's phases or seasonal changes.\n\nKeep a simple journal to track your mood and energy. Note when you feel proactive and when you want to pause and reflect. This practice enhances your intuition, helping you discern the right moments to act or hold back.\n\nPractical Steps to Harness Your Luck:\n\n1. Weekly Number Patterns Check: Start each week by reflecting on any number patterns from the last week.\n\n2. Morning Frequency Ritual: Allocate a few minutes each morning to raise your frequency through meditation, gratitude, or even a brief walk in nature.\n\n3. Plan Around Cycles: Use a planner to mark significant dates, upcoming moon phases, or your personal high-energy days.\n\nHarnessing luck is not about controlling outcomes; it's about aligning with life's flow and seizing universal opportunities. When you actively shape your destiny and align with the universe's energies, luck transforms from something you wait for into a natural part of your intentional life.`,
-      category: "Spirituality",
-      readingTime: "7 min read",
-      gradient: "from-emerald-400 to-teal-700",
-      imageUrl: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80",
-    },
-    {
-      title: "The Secret Symphony: The Mysteries of Numerology, Frequency, and Reality Formation",
-      slug: "secret-symphony-numerology-frequency",
-      excerpt: "Imagine a world where everything around you is woven together by invisible threads of numbers, sounds, and energies. Each number resonates with unique frequencies that shape our reality.",
-      content: `Imagine a world where everything around you is woven together by invisible threads of numbers, sounds, and energies. Each number resonates with unique frequencies, and these vibrations shape the very fabric of our reality.\n\nUnderstanding Numerology: The Language of Numbers\n\nNumerology is the study of the mystical significance of numbers and how they influence our lives. Each number has unique vibrations and meanings.\n\n1: Leadership and new beginnings. Those with a strong 1 presence often find themselves starting new projects.\n2: Balance and partnership. This vibration leads towards successful collaborations.\n3: Creativity and self-expression. Many artists and writers are influenced by this number.\n4: Stability and pragmatism, building strong foundations.\n5: Adventure and change, encouraging exploration.\n6: Nurturing and responsibility.\n7: Introspection and spirituality.\n8: Power and success.\n9: Compassion and humanitarianism.\n11: Master Number. Intuition and spiritual awakening.\n22: Master Builder. Vision and manifesting dreams.\n33: Master Teacher. Healing and compassion.\n\nEvery number vibrates at its distinct frequency. This frequency can significantly affect our emotional and physical states. The number 3 is often associated with joy and creativity. Research shows individuals who focus on creative endeavors report a 30% increase in overall satisfaction when aligned with this vibration.\n\nUnlocking Frequencies: Sound and Vibration\n\nJust as numbers hold unique meanings, so do sounds. Sound waves, measured in hertz (Hz), indicate the number of vibrations per second. The human body operates on frequencies ranging between 62 to 72 MHz.\n\nThe frequency of 432 Hz is believed to correspond with the universe's natural frequencies, promoting relaxation and inner peace. Listening to music tuned to this frequency can lead to a reported 20% increase in mood and emotional health.\n\nSound healing utilizes these vibrational properties. Instruments like singing bowls, gongs, and tuning forks provide vibrations that foster healing. Studies show sound therapy can reduce anxiety levels by up to 50%.\n\nThe Interplay of Energy in Reality Formation\n\nCombining numerology and frequency science leads us to a vital understanding: the role of energy in shaping our reality. The Law of Attraction proposes that like attracts like. When we radiate positive energies through our thoughts and intentions, we draw experiences that resonate with those frequencies.\n\nIn quantum physics, particles exist in potential states until observed. Consciousness plays a significant role in manifesting reality. Our thoughts and feelings contribute to a broader energy matrix, subtly tuning into the universe's fabric.\n\nPractical Applications:\n\n1. Meditative Practices: Focus on a number that resonates with you deeply. Visualize that number's energy surrounding you. Pair meditation with sound therapy using music tuned to specific frequencies.\n\n2. Journaling with Numbers: Keep a journal dedicated to exploring numerological insights. Reflect on important dates, significant experiences, and recurring numbers.\n\nThe interplay of numerology, frequency, and energy reveals an intriguing tapestry woven into our reality. You have the power to create your own symphony within this grand universe. Tune into your inner frequencies, explore the wisdom of numbers, and allow the energy of reality to guide your journey.`,
-      category: "Numerology",
-      readingTime: "10 min read",
-      gradient: "from-amber-400 to-orange-700",
-      imageUrl: "https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800&q=80",
-    },
-  ];
-
-  for (const post of nicolePosts) {
-    const exists = db.select().from(blogPosts).where(eq(blogPosts.slug, post.slug)).get();
-    if (!exists) {
-      db.insert(blogPosts).values(post).run();
-      console.log(`[seed] Added blog post: ${post.title}`);
-    }
-  }
 }
 
 export function seedDatabase() {
   migrateImages();
 
-  const postCount = db.select().from(blogPosts).all().length;
-  if (postCount > 0) return;
+  const existingPosts = db.select().from(blogPosts).all();
+  const hasNicolePosts = existingPosts.some(p => p.slug === "cracking-the-code-luck-potential");
+  const hasOldPosts = existingPosts.some(p => p.slug === "life-path-number-not-personality-test");
 
-  console.log("[seed] Seeding database...");
+  if (hasOldPosts || existingPosts.length === 0) {
+    if (hasOldPosts) {
+      db.delete(blogPosts).run();
+      console.log("[seed] Cleared old placeholder blog posts");
+    }
+    for (const post of NICOLE_BLOG_POSTS) {
+      db.insert(blogPosts).values(post).run();
+    }
+    console.log(`[seed] Added ${NICOLE_BLOG_POSTS.length} blog posts from Mindscapes`);
+  } else if (hasNicolePosts && existingPosts.length < NICOLE_BLOG_POSTS.length) {
+    const existingSlugs = new Set(existingPosts.map(p => p.slug));
+    for (const post of NICOLE_BLOG_POSTS) {
+      if (!existingSlugs.has(post.slug)) {
+        db.insert(blogPosts).values(post).run();
+      }
+    }
+    console.log("[seed] Synced missing blog posts");
+  }
 
-  db.insert(blogPosts).values([
-    {
-      title: "Why Your Life Path Number Isn't a Personality Test",
-      slug: "life-path-number-not-personality-test",
-      excerpt: "Spoiler: it's more like a GPS for your soul. We break down why reducing numerology to a BuzzFeed quiz does everyone a disservice.",
-      content: `Your Life Path number is not a personality test. It's not a horoscope. It's not a label.\n\nIt's a trajectory. A theme. A road your soul chose before you showed up here and started making questionable life decisions.\n\nThe problem with treating it like a personality quiz is that you flatten something multidimensional into a single trait. "Oh, I'm a 7, so I'm introspective." Sure. But you're also stubborn, deeply intuitive, and probably overthinking this article right now.\n\nYour Life Path number speaks to your life's purpose, not your personality. Personality is Expression, Soul Urge, Personality number. Life Path is about the journey itself.\n\nThink of it this way: your personality is how you drive. Your Life Path is the road. Same car, different experience depending on where you're headed.\n\nWant to know yours? The free calculator gives you all ten core numbers in seconds.`,
-      category: "Numerology",
-      readingTime: "6 min read",
-      gradient: "from-brand-400 to-brand-700",
-      imageUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80",
-    },
-    {
-      title: "The Numerology of Names: What's in Yours?",
-      slug: "numerology-of-names",
-      excerpt: "Your name carries more than just your parents' hopes and dreams. Here's what the numbers say about the letters you answer to.",
-      content: `Every letter in your name has a numerical value. When you add them up and reduce them, you get numbers that describe your Expression, Soul Urge, and Personality.\n\nYour Expression number (the full name) reveals your natural abilities and potential. Your Soul Urge (the vowels) reveals your inner desires, the things that drive you when nobody's watching. Your Personality number (the consonants) shows how others perceive you.\n\nThe fun part? If you've changed your name, married, or go by a nickname, those all carry different vibrations. Your birth name is your baseline. Everything else is a variation on the theme.\n\nSo next time someone asks "what's in a name?" you can tell them: quite literally everything.`,
-      category: "Numerology",
-      readingTime: "8 min read",
-      gradient: "from-violet-400 to-purple-600",
-      imageUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
-    },
-    {
-      title: "Crystals vs. Placebo: A Skeptic's Guide",
-      slug: "crystals-vs-placebo",
-      excerpt: "We love our crystals. We also love science. Can both be true? A surprisingly nuanced take from someone who owns too many rocks.",
-      content: `Let's get this out of the way: there is no peer-reviewed scientific evidence that crystals have healing powers.\n\nNow let's get this out of the way too: the placebo effect is one of the most powerful and well-documented phenomena in medicine. If believing something helps you feel better, you genuinely feel better. That's not fake. That's neuroscience.\n\nSo here's our take: crystals are beautiful, they encourage mindfulness, and they serve as physical reminders of intentions you've set. Is that "healing"? Maybe not in the clinical sense. But it's not nothing.\n\nThe key is honesty. Don't skip your medication for an amethyst. But also don't dismiss the real psychological benefits of ritual, beauty, and intention.\n\nWe sell crystals. We also sell honesty. Both are in stock.`,
-      category: "Curiosity",
-      readingTime: "5 min read",
-      gradient: "from-amber-400 to-orange-600",
-      imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-    },
-    {
-      title: "Handcrafting Salves: Why We Do It Wrong (On Purpose)",
-      slug: "handcrafting-salves",
-      excerpt: "There's a reason our salves don't look like they came from a factory. Intentional imperfection and the art of the handmade.",
-      content: `Our salves aren't perfect. They're not uniform. Sometimes the color varies batch to batch. Sometimes there's a slight texture difference.\n\nThat's not a bug. That's the entire point.\n\nWhen you make something by hand, you accept that each batch is unique. The ingredients are natural, the process is manual, and the result is something that carries the energy of being made with attention.\n\nFactory products are consistent because machines don't care. Handmade products are inconsistent because humans do.\n\nEvery jar we sell was stirred by hand, poured with intention, and tested on the person who made it. If that's "wrong," we'll keep doing it wrong.`,
-      category: "Making",
-      readingTime: "7 min read",
-      gradient: "from-emerald-500 to-teal-700",
-      imageUrl: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-    },
-    {
-      title: "The Moon Phase Bracelet: Design Notes",
-      slug: "moon-phase-bracelet-design",
-      excerpt: "How we turned a celestial obsession into something you can wear. Plus: why tracking the moon matters more than you think.",
-      content: `The Moon Phase Bracelet started as a sketch on a napkin. Literally. We were at a coffee shop, looking at the moon, and wondering why nobody made jewelry that tracked it properly.\n\nMost moon jewelry is decorative. Ours is functional. Each bead represents a phase, and the arrangement follows the actual lunar cycle. You can look down at your wrist and know where you are in the month.\n\nWhy does that matter? Because the moon has been humanity's original calendar for thousands of years. Farmers planted by it. Sailors navigated by it. And whether you believe in its influence or not, there's something grounding about paying attention to a cycle bigger than your to-do list.\n\nThe bracelet comes in silver and obsidian. Both look incredible. We're not biased at all.`,
-      category: "Jewelry",
-      readingTime: "4 min read",
-      gradient: "from-rose-400 to-pink-600",
-      imageUrl: "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80",
-    },
-    {
-      title: "Gematria: When Letters Become Numbers",
-      slug: "gematria-when-letters-become-numbers",
-      excerpt: "An ancient practice that turns words into numbers and finds meaning in the math. Here's why it's more fascinating than it sounds.",
-      content: `Gematria is one of those things that sounds complicated until you try it. Then it sounds even more complicated. But stick with me.\n\nThe basic idea: every letter has a numerical value. Add up the letters in a word, get a number. If two words add up to the same number, there's a connection. That's it. That's the whole system.\n\nExcept it's not, because humans have been finding layers in this for thousands of years. Kabbalists used gematria to decode hidden meanings in the Torah. Greek scholars did it with their own alphabet. Even today, people use it to find connections between names, intentions, and sacred texts.\n\nWe built a free gematria calculator on the site. Try your name. Try your partner's name. Try "pizza." No judgment on what you explore first.`,
-      category: "Tools",
-      readingTime: "5 min read",
-      gradient: "from-cyan-400 to-blue-600",
-      imageUrl: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80",
-    },
-    {
-      title: "Master Numbers: The Overachievers of Numerology",
-      slug: "master-numbers-overachievers",
-      excerpt: "11, 22, and 33 aren't just numbers. They're invitations to a harder, more rewarding path. No pressure.",
-      content: `In numerology, most numbers get reduced to a single digit. 15 becomes 6. 28 becomes 1. But three numbers refuse to be reduced: 11, 22, and 33.\n\nThese are the Master Numbers, and they earned the title.\n\n11 is the Intuitive Illuminator. Double 1, double independence, double vision. People with 11 prominent in their chart often feel like they're receiving signals others can't hear.\n\n22 is the Master Builder. The ability to turn dreams into reality on a massive scale.\n\n33 is the Master Teacher. Compassion at a cosmic level.\n\nIf you have a Master Number, you didn't get the easy route. You got the scenic one. The views are better, but so are the hills.`,
-      category: "Numerology",
-      readingTime: "6 min read",
-      gradient: "from-gold-400 to-amber-600",
-      imageUrl: "https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800&q=80",
-    },
-    {
-      title: "The Placebo Effect is Real (And That's a Good Thing)",
-      slug: "placebo-effect-is-real",
-      excerpt: "Science says believing something helps can actually help. So what does that mean for crystals, numerology, and everything we do here?",
-      content: `The placebo effect is one of the most well-documented phenomena in medicine. Give someone a sugar pill, tell them it's medicine, and measurable healing occurs. Their brain does the work.\n\nThis isn't fake healing. This is your nervous system responding to belief, intention, and ritual. Neuroscientists have mapped the exact pathways. It's real. It's measurable. It's powerful.\n\nWe're not here to prove crystals are medicine. We're here to offer tools for reflection, intention, and curiosity. If those tools work because you believe in them, that's not a weakness. That's your brain being extraordinary.`,
-      category: "Curiosity",
-      readingTime: "5 min read",
-      gradient: "from-teal-400 to-cyan-600",
-      imageUrl: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80",
-    },
-  ]).run();
+  const productCount = db.select().from(products).all().length;
+  if (productCount > 0) return;
+
+  console.log("[seed] Seeding products, gallery, courses, threads...");
 
   db.insert(products).values([
     { name: "Healing Salve", description: "Handcrafted with more love than your ex ever gave you. Real ingredients, real results, zero drama.", price: 24, category: "salve", gradient: "from-amber-400 to-orange-600", imageUrl: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=600&q=80" },
