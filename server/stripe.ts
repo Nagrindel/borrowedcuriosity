@@ -13,7 +13,7 @@ function getStripe(): Stripe {
     if (!key || key === "sk_test_your_key_here") {
       throw new Error("STRIPE_SECRET_KEY not configured");
     }
-    stripe = new Stripe(key, { apiVersion: "2025-01-27.acacia" as any });
+    stripe = new Stripe(key);
   }
   return stripe;
 }
@@ -107,7 +107,6 @@ export function registerStripeRoutes(app: Express) {
         line_items: lineItems,
         success_url: `${origin}/order-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/store`,
-        automatic_payment_methods: { enabled: true },
         shipping_address_collection: {
           allowed_countries: ["US", "CA", "GB", "AU", "NZ"],
         },
