@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Upload, Loader2, Sparkles, Heart, Shield, BookOpen, Gem, Zap, Star, X } from "lucide-react";
+import { Camera, Upload, Loader2, Sparkles, Heart, Shield, BookOpen, Gem, Zap, Star, X, Droplets, Globe, Moon, AlertTriangle, Diamond } from "lucide-react";
 
 interface CrystalResult {
   name: string;
@@ -198,14 +198,14 @@ export default function CrystalIdentifier() {
                     ))}
                     {result.metaphysical.element && (
                       <div className="glass rounded-xl p-3 text-center">
-                        <span className="text-lg">🌊</span>
+                        <Droplets className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
                         <p className="text-xs font-medium">{result.metaphysical.element}</p>
                         <p className="text-[10px] text-gray-500">Element</p>
                       </div>
                     )}
                     {result.metaphysical.vibration && (
                       <div className="glass rounded-xl p-3 text-center">
-                        <span className="text-lg">✨</span>
+                        <Sparkles className="w-5 h-5 text-amber-400 mx-auto mb-1" />
                         <p className="text-xs font-medium">{result.metaphysical.vibration}</p>
                         <p className="text-[10px] text-gray-500">Vibration</p>
                       </div>
@@ -262,14 +262,14 @@ export default function CrystalIdentifier() {
                 <motion.div key="stories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="space-y-4">
                   {[
-                    { label: "Biblical", icon: "📖", text: result.sacredStories.biblical },
-                    { label: "Mythology", icon: "🏛️", text: result.sacredStories.mythology },
-                    { label: "Cultural", icon: "🌍", text: result.sacredStories.cultural },
-                    { label: "Folklore", icon: "🌙", text: result.sacredStories.folklore },
+                    { label: "Biblical", icon: <BookOpen className="w-4 h-4 text-amber-400" />, text: result.sacredStories.biblical },
+                    { label: "Mythology", icon: <Globe className="w-4 h-4 text-violet-400" />, text: result.sacredStories.mythology },
+                    { label: "Cultural", icon: <Globe className="w-4 h-4 text-cyan-400" />, text: result.sacredStories.cultural },
+                    { label: "Folklore", icon: <Moon className="w-4 h-4 text-blue-400" />, text: result.sacredStories.folklore },
                   ].filter(x => x.text).map(x => (
                     <div key={x.label} className="glass rounded-xl p-5">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">{x.icon}</span>
+                        {x.icon}
                         <h4 className="font-display font-semibold">{x.label}</h4>
                       </div>
                       <p className="text-sm text-gray-400 leading-relaxed">{x.text}</p>
@@ -282,14 +282,14 @@ export default function CrystalIdentifier() {
                 <motion.div key="care" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="grid sm:grid-cols-2 gap-4">
                   {[
-                    { label: "Cleansing", items: result.careGuide.cleansing, icon: "💧" },
-                    { label: "Charging", items: result.careGuide.charging, icon: "⚡" },
-                    { label: "Avoid", items: result.careGuide.avoid, icon: "⚠️" },
-                    { label: "Pairs With", items: result.careGuide.pairsWith, icon: "💎" },
+                    { label: "Cleansing", items: result.careGuide.cleansing, icon: <Droplets className="w-4 h-4 text-cyan-400" /> },
+                    { label: "Charging", items: result.careGuide.charging, icon: <Zap className="w-4 h-4 text-amber-400" /> },
+                    { label: "Avoid", items: result.careGuide.avoid, icon: <AlertTriangle className="w-4 h-4 text-red-400" /> },
+                    { label: "Pairs With", items: result.careGuide.pairsWith, icon: <Diamond className="w-4 h-4 text-violet-400" /> },
                   ].filter(x => x.items?.length).map(x => (
                     <div key={x.label} className="glass rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-3">
-                        <span>{x.icon}</span>
+                        {x.icon}
                         <h4 className="font-display font-semibold text-sm">{x.label}</h4>
                       </div>
                       <div className="space-y-1.5">

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Volume2, VolumeX, Timer, Music, Brain, Sparkles, ChevronDown, Hash } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Timer, Music, Brain, Sparkles, ChevronDown, Hash, Headphones } from "lucide-react";
 
 interface Frequency {
   hz: number;
@@ -448,7 +448,7 @@ export default function Frequencies() {
           {tab === "binaural" && (
             <motion.div key="binaural" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               <div className="glass rounded-xl p-4 mb-4 flex items-start gap-3 border border-amber-500/20 bg-amber-500/5">
-                <span className="text-lg">🎧</span>
+                <Headphones className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-300/80">
                   <strong>Headphones required.</strong> Binaural beats work by playing slightly different frequencies in each ear.
                   Your brain perceives the difference as a pulsing beat that entrains brainwave activity.
