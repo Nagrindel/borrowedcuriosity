@@ -388,8 +388,9 @@ function ServiceDetailsModal({
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:w-full z-50 bg-white dark:bg-gray-900 rounded-2xl border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]"
+        className="fixed z-50 inset-0 flex items-center justify-center p-4 sm:p-6 pointer-events-none"
       >
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-white/10 shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] overflow-y-auto pointer-events-auto">
         <div className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -473,6 +474,7 @@ function ServiceDetailsModal({
               <ShoppingCart className="w-4 h-4" /> Add to Cart - ${product.price}
             </button>
           </form>
+        </div>
         </div>
       </motion.div>
     </>
