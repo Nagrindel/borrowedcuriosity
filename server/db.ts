@@ -158,5 +158,7 @@ try { sqlite.exec("ALTER TABLE orders ADD COLUMN stripe_payment_intent_id TEXT")
 try { sqlite.exec("ALTER TABLE products ADD COLUMN product_type TEXT NOT NULL DEFAULT 'physical'"); } catch {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN order_type TEXT NOT NULL DEFAULT 'physical'"); } catch {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN customer_notes TEXT"); } catch {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN shipping_address TEXT"); } catch {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN customer_phone TEXT"); } catch {}
 
 export const db = drizzle(sqlite, { schema });

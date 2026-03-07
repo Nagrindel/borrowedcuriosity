@@ -31,6 +31,26 @@ function isStripeConfigured(): boolean {
   return !!sk && sk !== "sk_test_your_key_here";
 }
 
+function extractShippingFromSession(session: Stripe.Checkout.Session) {
+  const shipping = session.shipping_details || (session as any).shipping;
+  if (!shipping?.address) return { shippingAddress: null, customerPhone: null };
+
+  const addr = shipping.address;
+  const shippingAddress = JSON.stringify({
+    name: shipping.name || session.customer_details?.name || "",
+    line1: addr.line1 || "",
+    line2: addr.line2 || "",
+    city: addr.city || "",
+    state: addr.state || "",
+    postal_code: addr.postal_code || "",
+    country: addr.country || "",
+  });
+
+  const customerPhone = session.customer_details?.phone || null;
+
+  return { shippingAddress, customerPhone };
+}
+
 export function registerStripeRoutes(app: Express) {
 
   app.get("/api/stripe/config", (_req, res) => {
@@ -68,6 +88,7 @@ export function registerStripeRoutes(app: Express) {
 
       const origin = `${req.protocol}://${req.get("host")}`;
       const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const hasPhysical = (orderType !== "service");
 
       if (!isStripeConfigured()) {
         const demoSessionId = `demo_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -80,6 +101,8 @@ export function registerStripeRoutes(app: Express) {
           status: "paid",
           orderType: orderType || "physical",
           customerNotes: customerNotes || null,
+          shippingAddress: hasPhysical ? JSON.stringify({ name: "Demo Customer", line1: "123 Demo St", line2: "", city: "Anytown", state: "CA", postal_code: "90210", country: "US" }) : null,
+          customerPhone: hasPhysical ? "+1 555-0100" : null,
           paymentMethod: "stripe (demo)",
           stripeSessionId: demoSessionId,
         }).run();
@@ -111,12 +134,15 @@ export function registerStripeRoutes(app: Express) {
         line_items: lineItems,
         success_url: `${origin}/order-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/store`,
-        shipping_address_collection: {
-          allowed_countries: ["US", "CA", "GB", "AU", "NZ"],
-        },
+        ...(hasPhysical ? {
+          shipping_address_collection: {
+            allowed_countries: ["US", "CA", "GB", "AU", "NZ"],
+          },
+        } : {}),
         phone_number_collection: { enabled: true },
         metadata: {
           items: JSON.stringify(items.map(i => ({ id: i.productId, name: i.name, price: i.price, qty: i.quantity }))),
+          orderType: orderType || "physical",
         },
         ...(customerEmail ? { customer_email: customerEmail } : {}),
       };
@@ -170,6 +196,7 @@ export function registerStripeRoutes(app: Express) {
           const paymentIntent = typeof session.payment_intent === "string"
             ? session.payment_intent
             : session.payment_intent?.id || null;
+          const { shippingAddress, customerPhone } = extractShippingFromSession(session);
 
           db.update(orders)
             .set({
@@ -178,11 +205,13 @@ export function registerStripeRoutes(app: Express) {
               customerName: name,
               stripePaymentIntentId: paymentIntent,
               paymentMethod: "stripe",
+              ...(shippingAddress ? { shippingAddress } : {}),
+              ...(customerPhone ? { customerPhone } : {}),
             })
             .where(eq(orders.stripeSessionId, session.id))
             .run();
 
-          console.log(`[stripe] payment completed: ${session.id} - ${email}`);
+          console.log(`[stripe] payment completed: ${session.id} - ${email}${shippingAddress ? " (shipping captured)" : ""}`);
           break;
         }
 
@@ -223,6 +252,7 @@ export function registerStripeRoutes(app: Express) {
         const paymentIntent = typeof session.payment_intent === "string"
           ? session.payment_intent
           : session.payment_intent?.id || null;
+        const { shippingAddress, customerPhone } = extractShippingFromSession(session);
 
         db.update(orders)
           .set({
@@ -230,6 +260,8 @@ export function registerStripeRoutes(app: Express) {
             customerEmail: email,
             customerName: name,
             stripePaymentIntentId: paymentIntent,
+            ...(shippingAddress ? { shippingAddress } : {}),
+            ...(customerPhone ? { customerPhone } : {}),
           })
           .where(eq(orders.stripeSessionId, sessionId))
           .run();
@@ -240,6 +272,8 @@ export function registerStripeRoutes(app: Express) {
           customerEmail: email,
           customerName: name,
           stripePaymentIntentId: paymentIntent,
+          shippingAddress: shippingAddress || order.shippingAddress,
+          customerPhone: customerPhone || order.customerPhone,
         });
       }
 

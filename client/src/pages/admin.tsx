@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FileText, ShoppingBag, Image, GraduationCap,
   MessageCircle as ThreadIcon, Users, Package, MessageSquare,
   Plus, Trash2, Pencil, X, Save, LogOut, Lock, Eye, EyeOff,
-  Loader2, ChevronDown, ChevronUp
+  Loader2, ChevronDown, ChevronUp, MapPin, Phone, Truck, ClipboardList
 } from "lucide-react";
 
 type Tab = "dashboard" | "blog" | "products" | "gallery" | "courses" | "threads" | "subscribers" | "orders" | "comments";
@@ -715,15 +715,22 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
     try { return JSON.parse(notes); } catch { return null; }
   };
 
+  const parseShipping = (addr: string | null) => {
+    if (!addr) return null;
+    try { return JSON.parse(addr); } catch { return null; }
+  };
+
   if (loading) return <Loading />;
 
   const paidStatuses = ["paid", "processing", "shipped", "delivered", "completed"];
   const paidTotal = items.filter(o => paidStatuses.includes(o.status)).reduce((sum, o) => sum + o.total, 0);
   const pendingService = items.filter(o => (o.orderType === "service" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing")).length;
+  const pendingShip = items.filter(o => (o.orderType === "physical" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing")).length;
 
   const filtered = filter === "all" ? items
     : filter === "service" ? items.filter(o => o.orderType === "service" || o.orderType === "mixed")
     : filter === "needs-action" ? items.filter(o => o.status === "paid" || o.status === "processing")
+    : filter === "to-ship" ? items.filter(o => (o.orderType === "physical" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing"))
     : items;
 
   return (
@@ -734,13 +741,14 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
           <div className="flex items-center gap-4 mt-1">
             {paidTotal > 0 && <span className="text-xs text-green-400 font-medium">Revenue: ${paidTotal.toFixed(2)}</span>}
             {pendingService > 0 && <span className="text-xs text-violet-400 font-medium">{pendingService} report{pendingService > 1 ? "s" : ""} to write</span>}
+            {pendingShip > 0 && <span className="text-xs text-cyan-400 font-medium">{pendingShip} to ship</span>}
           </div>
         </div>
         <div className="flex gap-2">
-          {["all", "needs-action", "service"].map(f => (
+          {["all", "needs-action", "to-ship", "service"].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === f ? "bg-brand-500/15 text-brand-400" : "text-gray-500 hover:text-gray-300 glass"}`}>
-              {f === "all" ? "All" : f === "needs-action" ? "Needs Action" : "Reports"}
+              {f === "all" ? "All" : f === "needs-action" ? "Needs Action" : f === "to-ship" ? "To Ship" : "Reports"}
             </button>
           ))}
         </div>
@@ -750,8 +758,10 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
           {filtered.map(o => {
             const orderItems = parseItems(o.items);
             const notes = parseNotes(o.customerNotes);
+            const shipping = parseShipping(o.shippingAddress);
             const isExpanded = expandedOrder === o.id;
             const isService = o.orderType === "service" || o.orderType === "mixed";
+            const isPhysical = o.orderType === "physical" || o.orderType === "mixed";
             return (
               <div key={o.id} className={`glass rounded-xl p-4 ${isService && (o.status === "paid" || o.status === "processing") ? "border border-violet-500/30" : ""}`}>
                 <div className="flex items-center gap-4">
@@ -835,9 +845,47 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
                       </div>
                     )}
 
+                    {isPhysical && shipping && (
+                      <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-4 space-y-2">
+                        <p className="text-xs font-medium text-cyan-400 flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5" /> Shipping Details
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-gray-500">Ship To:</span>
+                            <p className="font-medium">{shipping.name}</p>
+                          </div>
+                          {o.customerPhone && (
+                            <div>
+                              <span className="text-gray-500 flex items-center gap-1"><Phone className="w-3 h-3" /> Phone:</span>
+                              <p className="font-medium">{o.customerPhone}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs">
+                          <span className="text-gray-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> Address:</span>
+                          <p className="font-medium mt-0.5">
+                            {shipping.line1}
+                            {shipping.line2 && <><br />{shipping.line2}</>}
+                            <br />{shipping.city}, {shipping.state} {shipping.postal_code}
+                            <br />{shipping.country}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {isPhysical && !shipping && o.status === "paid" && (
+                      <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400 flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                        Shipping address not yet captured. Check Stripe Dashboard for details.
+                      </div>
+                    )}
+
                     {orderItems.length > 0 && (
                       <div className="space-y-1.5">
-                        <p className="text-xs text-gray-500 font-medium mb-1">Items</p>
+                        <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1.5">
+                          <ClipboardList className="w-3.5 h-3.5" /> Items
+                        </p>
                         {orderItems.map((item: any, i: number) => (
                           <div key={i} className="flex justify-between text-sm glass rounded-lg p-2.5">
                             <span>{item.quantity || item.qty}x {item.name}</span>

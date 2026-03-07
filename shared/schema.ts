@@ -58,6 +58,8 @@ export const orders = sqliteTable("orders", {
   status: text("status").notNull().default("pending"), // pending | paid | processing | shipped | delivered | completed
   orderType: text("order_type").notNull().default("physical"), // "physical" | "service" | "mixed"
   customerNotes: text("customer_notes"), // JSON: birth details, special requests, etc.
+  shippingAddress: text("shipping_address"), // JSON: Stripe shipping details
+  customerPhone: text("customer_phone"),
   paymentMethod: text("payment_method"),
   stripeSessionId: text("stripe_session_id"),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
