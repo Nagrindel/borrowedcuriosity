@@ -71,7 +71,7 @@ export default function SacredStories() {
             </h1>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Biblical references, mythology, folklore, and cultural traditions surrounding
-              crystals, numbers, and the spiritual world. Click any story for an AI-expanded deep dive.
+              crystals, numbers, and the spiritual world. Click any story for an expanded deep dive.
             </p>
           </motion.div>
         </div>

@@ -98,14 +98,14 @@ export default function QuizPage() {
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-medium text-brand-400 mb-6">
-              <Brain className="w-3.5 h-3.5" /> AI-Generated
+              <Brain className="w-3.5 h-3.5" /> Test Your Knowledge
             </span>
             <h1 className="font-display text-4xl sm:text-5xl font-bold mb-5">
               Spiritual <span className="text-gradient">Quiz</span>
             </h1>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Test your knowledge of numerology, crystals, chakras, and more.
-              AI creates unique questions every time. Learn something new with each attempt.
+              Unique questions every time. Learn something new with each attempt.
             </p>
           </motion.div>
         </div>

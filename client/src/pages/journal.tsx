@@ -82,13 +82,13 @@ export default function Journal() {
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-medium text-brand-400 mb-6">
-              <BookOpen className="w-3.5 h-3.5" /> AI-Powered
+              <BookOpen className="w-3.5 h-3.5" /> Spiritual Journaling
             </span>
             <h1 className="font-display text-4xl sm:text-5xl font-bold mb-5">
               Spiritual <span className="text-gradient">Journal</span>
             </h1>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              AI-generated journal prompts tailored to your mood, theme, and numerology.
+              Journal prompts tailored to your mood, theme, and numerology.
               Because the right question can change everything.
             </p>
           </motion.div>

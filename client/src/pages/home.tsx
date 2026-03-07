@@ -25,7 +25,7 @@ const FEATURES = [
   { icon: GalleryVerticalEnd, label: "Gallery", href: "/gallery", color: "from-amber-500 to-orange-500", desc: "Photos, videos, downloads" },
   { icon: MessageCircle, label: "Threads", href: "/threads", color: "from-green-500 to-emerald-500", desc: "Bite-sized stories to flip through" },
   { icon: GraduationCap, label: "Courses", href: "/courses", color: "from-rose-500 to-red-500", desc: "Free lessons, no paywall" },
-  { icon: Sparkles, label: "Alta", href: "/ask-alta", color: "from-violet-500 to-purple-600", desc: "AI numerology guide" },
+  { icon: Sparkles, label: "Alta", href: "/ask-alta", color: "from-violet-500 to-purple-600", desc: "Your personal numerology guide" },
 ];
 
 const TOOLS = [
@@ -35,11 +35,11 @@ const TOOLS = [
   { icon: BookOpen, label: "Word Lookup", href: "/word-lookup", color: "from-cyan-500 to-blue-600", desc: "Dictionary definitions plus the numerological value of any word." },
   { icon: Gem, label: "Crystal Guide", href: "/crystals", color: "from-purple-500 to-fuchsia-600", desc: "12 crystals with properties, chakra connections, and honest descriptions." },
   { icon: Hash, label: "Gematria Calculator", href: "/gematria", color: "from-emerald-500 to-teal-600", desc: "Convert words to numbers. Compare phrases. Discover hidden connections." },
-  { icon: Camera, label: "Crystal Identifier", href: "/identify", color: "from-violet-500 to-indigo-600", desc: "Upload a photo or describe a crystal. AI identifies it with full analysis." },
+  { icon: Camera, label: "Crystal Identifier", href: "/identify", color: "from-violet-500 to-indigo-600", desc: "Upload a photo or describe a crystal. Get a full geological and metaphysical analysis." },
   { icon: Music, label: "Frequency Generator", href: "/frequencies", color: "from-teal-500 to-cyan-600", desc: "Solfeggio tones, binaural beats, and your personal frequency." },
-  { icon: Feather, label: "Spiritual Journal", href: "/journal", color: "from-emerald-500 to-green-600", desc: "AI-personalized journal prompts based on mood and numerology." },
+  { icon: Feather, label: "Spiritual Journal", href: "/journal", color: "from-emerald-500 to-green-600", desc: "Personalized journal prompts based on mood and numerology." },
   { icon: BookOpen, label: "Sacred Stories", href: "/stories", color: "from-amber-500 to-yellow-600", desc: "Crystal mythology, biblical stones, and sacred traditions." },
-  { icon: Brain, label: "Spiritual Quiz", href: "/quiz", color: "from-cyan-500 to-sky-600", desc: "Test your knowledge. AI creates unique questions every time." },
+  { icon: Brain, label: "Spiritual Quiz", href: "/quiz", color: "from-cyan-500 to-sky-600", desc: "Test your knowledge. Unique questions generated every time." },
 ];
 
 export default function Home() {
@@ -71,7 +71,7 @@ export default function Home() {
 
           <motion.p {...stagger(0.2)}
             className="text-base sm:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8 max-w-xl mx-auto">
-            Numerology, crystals, handcrafted goods, and AI-powered tools
+            Numerology, crystals, handcrafted goods, and smart tools
             for the spiritually curious. No gatekeeping, just good energy.
           </motion.p>
 
