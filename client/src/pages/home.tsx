@@ -62,12 +62,7 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <motion.span {...stagger(0)}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-medium tracking-wider uppercase text-brand-400 mb-6">
-            <Sparkles className="w-3 h-3" /> Borrowed Curiosity LLC
-          </motion.span>
-
-          <motion.h1 {...stagger(0.1)}
+          <motion.h1 {...stagger(0)}
             className="font-display text-5xl sm:text-7xl lg:text-[5.5rem] font-bold leading-[1.05] mb-6 tracking-tight">
             Borrow the <span className="text-gradient">curiosity.</span>
             <br />
