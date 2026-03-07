@@ -46,19 +46,23 @@ export function seedDatabase() {
   migrateImages();
 
   const existingPosts = db.select().from(blogPosts).all();
-  const hasNicolePosts = existingPosts.some(p => p.slug === "cracking-the-code-luck-potential");
-  const hasOldPosts = existingPosts.some(p => p.slug === "life-path-number-not-personality-test");
+  const realSlug = "cracking-the-code-unleashing-your-true-luck-potential-through-number-patterns-frequency-alignment-and-cyclic-intuition";
+  const hasRealPosts = existingPosts.some(p => p.slug === realSlug);
+  const hasOldPosts = existingPosts.some(p =>
+    p.slug === "life-path-number-not-personality-test" ||
+    p.slug === "cracking-the-code-luck-potential"
+  );
 
   if (hasOldPosts || existingPosts.length === 0) {
-    if (hasOldPosts) {
+    if (existingPosts.length > 0) {
       db.delete(blogPosts).run();
-      console.log("[seed] Cleared old placeholder blog posts");
+      console.log("[seed] Cleared old/placeholder blog posts");
     }
     for (const post of NICOLE_BLOG_POSTS) {
       db.insert(blogPosts).values(post).run();
     }
     console.log(`[seed] Added ${NICOLE_BLOG_POSTS.length} blog posts from Mindscapes`);
-  } else if (hasNicolePosts && existingPosts.length < NICOLE_BLOG_POSTS.length) {
+  } else if (hasRealPosts && existingPosts.length < NICOLE_BLOG_POSTS.length) {
     const existingSlugs = new Set(existingPosts.map(p => p.slug));
     for (const post of NICOLE_BLOG_POSTS) {
       if (!existingSlugs.has(post.slug)) {
