@@ -143,19 +143,16 @@ export default function Home() {
             </h2>
           </motion.div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {TOOLS.map((tool, i) => (
-              <motion.div key={tool.label} {...stagger(i * 0.08)}>
+              <motion.div key={tool.label} {...stagger(i * 0.04)}>
                 <Link href={tool.href}>
-                  <div className="glass rounded-2xl p-5 sm:p-6 flex items-center gap-5 group cursor-pointer hover:border-brand-500/30 transition-all duration-300">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${tool.color} flex items-center justify-center shrink-0`}>
-                      <tool.icon className="w-7 h-7 text-white" />
+                  <div className="glass rounded-xl p-4 group cursor-pointer hover:border-brand-500/30 transition-all duration-300 hover:-translate-y-0.5 h-full">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-3`}>
+                      <tool.icon className="w-5 h-5 text-white" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-display font-semibold sm:text-lg">{tool.label}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{tool.desc}</p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-brand-400 group-hover:translate-x-1 transition-all shrink-0 hidden sm:block" />
+                    <p className="font-display font-semibold text-sm mb-1">{tool.label}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">{tool.desc}</p>
                   </div>
                 </Link>
               </motion.div>
