@@ -29,11 +29,14 @@ function sumLetters(text: string, system: System): number {
 }
 
 export function calculateLifePath(birthDate: string): number {
-  const d = new Date(birthDate);
-  const m = reduceToSingleDigit(d.getMonth() + 1);
-  const day = reduceToSingleDigit(d.getDate());
-  const y = reduceToSingleDigit(String(d.getFullYear()).split("").reduce((s, c) => s + parseInt(c), 0));
-  return reduceToSingleDigit(m + day + y);
+  const [yearStr, monthStr, dayStr] = birthDate.split("-");
+  const month = parseInt(monthStr, 10);
+  const dayNum = parseInt(dayStr, 10);
+  const yearDigitSum = yearStr.split("").reduce((s, c) => s + parseInt(c, 10), 0);
+  const m = reduceToSingleDigit(month);
+  const d = reduceToSingleDigit(dayNum);
+  const y = reduceToSingleDigit(yearDigitSum);
+  return reduceToSingleDigit(m + d + y);
 }
 
 export function calculateExpression(name: string, system: System): number {
@@ -66,7 +69,7 @@ export function calculateProfile(name: string, birthDate: string, system: System
   const expression = calculateExpression(name, system);
   const soulUrge = calculateSoulUrge(name, system);
   const personality = calculatePersonality(name, system);
-  const birthDay = reduceToSingleDigit(new Date(birthDate).getDate());
+  const birthDay = reduceToSingleDigit(parseInt(birthDate.split("-")[2], 10));
   const maturity = reduceToSingleDigit(lifePath + expression);
 
   const counts: Record<number, number> = {};
@@ -156,5 +159,7 @@ export function generateReportHTML(profile: NumerologyProfile, name: string, bir
       `<p style="margin-top:12px;color:#555;">These numbers are missing from your name. Energies you're here to develop.</p>`
     : `<p style="color:#555;">No karmic lessons. Your name contains all numbers 1 through 9. That's rare.</p>`;
 
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Numerology Report - ${name}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#6366f1,#8b5cf6);min-height:100vh;padding:40px 20px}.c{max-width:800px;margin:0 auto}.h{text-align:center;color:white;margin-bottom:32px}.h h1{font-size:2.2em;margin-bottom:8px}.h p{opacity:.85}.card{background:white;border-radius:16px;padding:28px;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,.12)}.card h2{font-size:1.2em;margin-bottom:16px;color:#4f46e5;border-bottom:2px solid #e5e7eb;padding-bottom:8px}.nr{display:flex;align-items:center;margin-bottom:18px}.ci{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:1.1em;flex-shrink:0;margin-right:16px}.nr h3{font-size:.95em;color:#111;margin-bottom:2px}.nr p{font-size:.85em;color:#555;line-height:1.5}.f{text-align:center;color:white;margin-top:32px;opacity:.8;font-size:.85em}@media print{body{background:white;padding:20px}.h{color:#4f46e5}.f{color:#888}}</style></head><body><div class="c"><div class="h"><h1>Numerology Report</h1><p>${name} &bull; Born ${new Date(birthDate).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})} &bull; ${system.charAt(0).toUpperCase()+system.slice(1)}</p></div><div class="card"><h2>Core Numbers</h2>${sections.map((s,i)=>`<div class="nr"><div class="ci" style="background:${colors[i%colors.length]}">${s.value}</div><div><h3>${s.label}</h3><p>${s.detail}</p></div></div>`).join("")}</div><div class="card"><h2>Karmic Lessons</h2>${karmicHTML}</div><div class="card"><h2>Subconscious Self: ${profile.subconscious}/9</h2><p style="color:#555">${profile.subconscious>=7?"You handle crises with confidence. When pressure hits, you've got most tools in your belt.":profile.subconscious>=5?"Solid foundation for handling challenges, with growth edges that keep things interesting.":"You may feel uncertain under sudden pressure. This is where your karmic lessons ask you to grow."}</p></div><div class="f"><p>Borrowed Curiosity LLC &copy; ${new Date().getFullYear()}</p><p style="margin-top:4px">Curiosity borrowed. Wisdom earned.</p></div></div></body></html>`;
+  const [yr, mo, dy] = birthDate.split("-").map(Number);
+  const displayDate = new Date(yr, mo - 1, dy).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Numerology Report - ${name}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#6366f1,#8b5cf6);min-height:100vh;padding:40px 20px}.c{max-width:800px;margin:0 auto}.h{text-align:center;color:white;margin-bottom:32px}.h h1{font-size:2.2em;margin-bottom:8px}.h p{opacity:.85}.card{background:white;border-radius:16px;padding:28px;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,.12)}.card h2{font-size:1.2em;margin-bottom:16px;color:#4f46e5;border-bottom:2px solid #e5e7eb;padding-bottom:8px}.nr{display:flex;align-items:center;margin-bottom:18px}.ci{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:1.1em;flex-shrink:0;margin-right:16px}.nr h3{font-size:.95em;color:#111;margin-bottom:2px}.nr p{font-size:.85em;color:#555;line-height:1.5}.f{text-align:center;color:white;margin-top:32px;opacity:.8;font-size:.85em}@media print{body{background:white;padding:20px}.h{color:#4f46e5}.f{color:#888}}</style></head><body><div class="c"><div class="h"><h1>Numerology Report</h1><p>${name} &bull; Born ${displayDate} &bull; ${system.charAt(0).toUpperCase()+system.slice(1)}</p></div><div class="card"><h2>Core Numbers</h2>${sections.map((s,i)=>`<div class="nr"><div class="ci" style="background:${colors[i%colors.length]}">${s.value}</div><div><h3>${s.label}</h3><p>${s.detail}</p></div></div>`).join("")}</div><div class="card"><h2>Karmic Lessons</h2>${karmicHTML}</div><div class="card"><h2>Subconscious Self: ${profile.subconscious}/9</h2><p style="color:#555">${profile.subconscious>=7?"You handle crises with confidence. When pressure hits, you've got most tools in your belt.":profile.subconscious>=5?"Solid foundation for handling challenges, with growth edges that keep things interesting.":"You may feel uncertain under sudden pressure. This is where your karmic lessons ask you to grow."}</p></div><div class="f"><p>Borrowed Curiosity LLC &copy; ${new Date().getFullYear()}</p><p style="margin-top:4px">Borrow the curiosity. Keep the wisdom.</p></div></div></body></html>`;
 }

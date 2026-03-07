@@ -69,15 +69,15 @@ export default function Home() {
 
           <motion.h1 {...stagger(0.1)}
             className="font-display text-5xl sm:text-7xl lg:text-[5.5rem] font-bold leading-[1.05] mb-6 tracking-tight">
-            Curiosity <span className="text-gradient">borrowed.</span>
+            Borrow the <span className="text-gradient">curiosity.</span>
             <br />
-            Wisdom <span className="text-gradient">earned.</span>
+            Keep the <span className="text-gradient">wisdom.</span>
           </motion.h1>
 
           <motion.p {...stagger(0.2)}
             className="text-base sm:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8 max-w-xl mx-auto">
-            Handcrafted goods, numerology insights, creative content, and
-            a community built on asking better questions.
+            Numerology, crystals, handcrafted goods, and AI-powered tools
+            for the spiritually curious. No gatekeeping, just good energy.
           </motion.p>
 
           <motion.div {...stagger(0.3)} className="flex flex-wrap justify-center gap-3">

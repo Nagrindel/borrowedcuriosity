@@ -44,7 +44,7 @@ export default function Footer() {
             </span>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 sm:ml-auto">
-            Curiosity borrowed. Wisdom earned.
+            Borrow the curiosity. Keep the wisdom.
           </p>
         </div>
 
