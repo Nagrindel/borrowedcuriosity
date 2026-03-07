@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, Sparkles, Download, RotateCcw, ChevronDown, Info, Save, CheckCircle } from "lucide-react";
 import {
   calculateProfile, getMeaning, getDetailedLifePath, getDetailedExpression,
-  generateReportHTML, type NumerologyProfile, type System,
+  generateReportHTML, getResearchInterests, type NumerologyProfile, type System,
 } from "@/lib/numerology";
 
 const fadeUp = {
@@ -284,6 +284,31 @@ export default function CalculatorPage() {
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.text}</p>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="font-display text-2xl font-bold mb-4">Research Interests and Topics for You</h2>
+                  <div className="glass rounded-2xl p-6">
+                    <p className="text-sm text-gray-500 mb-5">
+                      Based on your Life Path {profile.lifePath}, Expression {profile.expression}, and Soul Urge {profile.soulUrge}, these
+                      subjects naturally align with your numerological profile. Not career advice, but fuel for your curiosity.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {getResearchInterests(profile).map((interest, idx) => (
+                        <motion.div
+                          key={interest.topic}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05, duration: 0.3 }}
+                          className="border-l-3 border-brand-500 pl-4 py-2"
+                          style={{ borderLeftWidth: 3 }}
+                        >
+                          <p className="font-medium text-sm mb-0.5">{interest.topic}</p>
+                          <p className="text-xs text-gray-500 leading-relaxed">{interest.reason}</p>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

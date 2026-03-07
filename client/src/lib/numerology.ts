@@ -142,6 +142,131 @@ export function getDetailedExpression(n: number): string {
   return d[n] || getMeaning(n);
 }
 
+export interface ResearchInterest {
+  topic: string;
+  reason: string;
+}
+
+const LIFE_PATH_TOPICS: Record<number, ResearchInterest[]> = {
+  1: [
+    { topic: "Philosophy of Self and Identity", reason: "Your independent nature thrives when exploring what makes you, you" },
+    { topic: "Innovation and Invention History", reason: "Pioneers learn best from other pioneers" },
+    { topic: "Strategic Leadership", reason: "Your path demands you understand how to lead without following a script" },
+  ],
+  2: [
+    { topic: "Psychology of Relationships", reason: "Understanding human connection is your natural language" },
+    { topic: "Music Theory and Sound Healing", reason: "Your sensitivity to harmony extends beyond people into vibration itself" },
+    { topic: "Conflict Resolution and Mediation", reason: "Your gift for balance makes this feel intuitive, not academic" },
+  ],
+  3: [
+    { topic: "Creative Writing and Storytelling", reason: "Your voice is your greatest tool and sharpening it changes everything" },
+    { topic: "Color Theory and Visual Design", reason: "You think in images and feelings before words" },
+    { topic: "Comedy, Improv, and Performance", reason: "Joy is your frequency and studying how it works deepens your impact" },
+  ],
+  4: [
+    { topic: "Architecture and Sacred Geometry", reason: "You build structures, physical and conceptual, that stand the test of time" },
+    { topic: "Systems Thinking and Process Design", reason: "You see order where others see chaos" },
+    { topic: "History and Ancient Civilizations", reason: "Understanding what lasted (and what didn't) feeds your builder's instinct" },
+  ],
+  5: [
+    { topic: "Cultural Anthropology and World Traditions", reason: "Your curiosity crosses every border" },
+    { topic: "Language Learning and Linguistics", reason: "Freedom expands when you can communicate in more than one world" },
+    { topic: "Adventure Psychology and Risk", reason: "Understanding why you crave change helps you channel it wisely" },
+  ],
+  6: [
+    { topic: "Herbalism and Natural Remedies", reason: "Your nurturing instinct extends naturally to the healing arts" },
+    { topic: "Education and Teaching Methods", reason: "You're a natural teacher whether you have a classroom or not" },
+    { topic: "Interior Design and Space Energy", reason: "You transform environments by instinct and studying it makes you masterful" },
+  ],
+  7: [
+    { topic: "Quantum Physics and Consciousness Studies", reason: "Your analytical mind craves the questions science hasn't answered yet" },
+    { topic: "Numerology, Astrology, and Sacred Systems", reason: "You're wired to decode hidden patterns in the universe" },
+    { topic: "Meditation and Contemplative Practices", reason: "Your inner world is vast and studying how to navigate it is your superpower" },
+  ],
+  8: [
+    { topic: "Behavioral Economics and Decision Science", reason: "Understanding how value works at every level feeds your natural authority" },
+    { topic: "Power Dynamics and Organizational Psychology", reason: "You're built to understand and wield influence responsibly" },
+    { topic: "Wealth Philosophy and Abundance Mindset", reason: "Your path involves mastering material reality without being mastered by it" },
+  ],
+  9: [
+    { topic: "Human Rights and Social Justice", reason: "Your compassion isn't abstract, it needs real-world application" },
+    { topic: "Art History and Cultural Movements", reason: "You understand how creativity reshapes civilizations" },
+    { topic: "Humanitarian Studies and Global Health", reason: "Healing the world starts with understanding it deeply" },
+  ],
+  11: [
+    { topic: "Intuition Development and Psychic Research", reason: "Your heightened sensitivity is a skill that deepens with study" },
+    { topic: "Mysticism Across Traditions", reason: "Every culture mapped the unseen world and you're wired to compare notes" },
+    { topic: "Consciousness and Neuroscience", reason: "Bridging science and spirit is your unique territory" },
+  ],
+  22: [
+    { topic: "Sustainable Development and Urban Planning", reason: "You think in systems that span generations" },
+    { topic: "Technology and Social Infrastructure", reason: "Your vision needs large-scale tools to match it" },
+    { topic: "Project Management and Execution Science", reason: "Turning massive ideas into reality is your calling and these tools accelerate it" },
+  ],
+  33: [
+    { topic: "Spiritual Psychology and Transpersonal Therapy", reason: "Healing at the soul level is your natural domain" },
+    { topic: "Community Building and Cooperative Models", reason: "Your compassion works best when it scales" },
+    { topic: "Wisdom Traditions and Sacred Texts", reason: "The great teachers studied the great teachers before them" },
+  ],
+};
+
+const EXPRESSION_TOPICS: Record<number, ResearchInterest[]> = {
+  1: [{ topic: "Personal Branding and Authentic Voice", reason: "Your Expression says you lead by being distinctly yourself" }],
+  2: [{ topic: "Emotional Intelligence Research", reason: "Your talent for reading people is a field of study unto itself" }],
+  3: [{ topic: "Public Speaking and Rhetoric", reason: "Your natural expressiveness becomes powerful when refined" }],
+  4: [{ topic: "Data Analysis and Pattern Recognition", reason: "Your methodical mind turns raw information into insight" }],
+  5: [{ topic: "Journalism and Investigative Research", reason: "Your versatility makes you a natural at uncovering stories" }],
+  6: [{ topic: "Nutrition and Holistic Wellness", reason: "Your caretaking nature deepens with knowledge of body and health" }],
+  7: [{ topic: "Research Methodology and Critical Thinking", reason: "Your analytical gift deserves the sharpest tools available" }],
+  8: [{ topic: "Negotiation and Strategic Communication", reason: "Your executive energy becomes unstoppable with the right frameworks" }],
+  9: [{ topic: "Creative Philanthropy and Social Enterprise", reason: "Your empathy combined with action changes communities" }],
+  11: [{ topic: "Dream Analysis and Symbolic Language", reason: "Your intuitive vision speaks in symbols worth decoding" }],
+  22: [{ topic: "Engineering and Applied Innovation", reason: "Your ability to manifest needs technical depth to match" }],
+  33: [{ topic: "Narrative Therapy and Healing Stories", reason: "You teach through presence and story is your vehicle" }],
+};
+
+const SOUL_URGE_TOPICS: Record<number, ResearchInterest[]> = {
+  1: [{ topic: "Autonomy and Self-Determination Philosophy", reason: "Your soul craves understanding the nature of independence itself" }],
+  2: [{ topic: "Love Languages and Attachment Theory", reason: "Your deepest desire is connection and studying it transforms how you give and receive" }],
+  3: [{ topic: "Creative Flow and the Psychology of Play", reason: "Your soul lights up when it understands why joy works" }],
+  4: [{ topic: "Minimalism and Intentional Living", reason: "Your inner world wants order and studying simplicity satisfies that craving" }],
+  5: [{ topic: "Sensory Science and the Nature of Experience", reason: "Your soul is hungry for experience and understanding perception enriches every one" }],
+  6: [{ topic: "Family Systems Theory", reason: "Your heart orbits around home and understanding its dynamics unlocks deep healing" }],
+  7: [{ topic: "Philosophy of Mind and Existential Questions", reason: "Your soul's deepest desire is truth and philosophy is the oldest search party" }],
+  8: [{ topic: "Legacy Building and Generational Impact", reason: "Your inner drive wants to create something that outlives you" }],
+  9: [{ topic: "Forgiveness Studies and Letting Go", reason: "Your soul carries the weight of the world and learning to release it is your liberation" }],
+  11: [{ topic: "Channeling and Inspired Creativity", reason: "Your soul receives transmissions and learning to trust them changes everything" }],
+  22: [{ topic: "Visionary Architecture and World-Building", reason: "Your inner world contains blueprints that want to become real" }],
+  33: [{ topic: "Compassion Science and Altruism Research", reason: "Your soul's purpose is love and science is beginning to prove it heals" }],
+};
+
+export function getResearchInterests(profile: NumerologyProfile): ResearchInterest[] {
+  const interests: ResearchInterest[] = [];
+  const lifePathTopics = LIFE_PATH_TOPICS[profile.lifePath] || LIFE_PATH_TOPICS[9];
+  interests.push(...lifePathTopics);
+
+  const exprTopics = EXPRESSION_TOPICS[profile.expression] || EXPRESSION_TOPICS[9];
+  interests.push(...exprTopics);
+
+  const soulTopics = SOUL_URGE_TOPICS[profile.soulUrge] || SOUL_URGE_TOPICS[9];
+  interests.push(...soulTopics);
+
+  if (profile.hiddenPassion === 7) {
+    interests.push({ topic: "Esoteric Studies and Hidden Knowledge", reason: "Your Hidden Passion for the number 7 reveals a deep pull toward mysteries beneath the surface" });
+  } else if (profile.hiddenPassion === 3) {
+    interests.push({ topic: "Creative Expression Across Mediums", reason: "Your Hidden Passion for 3 means you learn best when creativity is involved" });
+  } else if (profile.hiddenPassion === 5) {
+    interests.push({ topic: "Travel Writing and Experiential Learning", reason: "Your Hidden Passion for 5 means movement and variety are how you absorb knowledge best" });
+  }
+
+  const seen = new Set<string>();
+  return interests.filter(i => {
+    if (seen.has(i.topic)) return false;
+    seen.add(i.topic);
+    return true;
+  });
+}
+
 export function generateReportHTML(profile: NumerologyProfile, name: string, birthDate: string, system: string): string {
   const sections = [
     { label: "Life Path", value: profile.lifePath, detail: getDetailedLifePath(profile.lifePath) },
@@ -159,7 +284,12 @@ export function generateReportHTML(profile: NumerologyProfile, name: string, bir
       `<p style="margin-top:12px;color:#555;">These numbers are missing from your name. Energies you're here to develop.</p>`
     : `<p style="color:#555;">No karmic lessons. Your name contains all numbers 1 through 9. That's rare.</p>`;
 
+  const interests = getResearchInterests(profile);
+  const interestsHTML = interests.map(i =>
+    `<div style="margin-bottom:14px;padding:12px 16px;background:#f8f7ff;border-radius:10px;border-left:3px solid #6366f1;"><h3 style="font-size:.95em;color:#111;margin-bottom:3px;">${i.topic}</h3><p style="font-size:.83em;color:#555;line-height:1.5;margin:0;">${i.reason}</p></div>`
+  ).join("");
+
   const [yr, mo, dy] = birthDate.split("-").map(Number);
   const displayDate = new Date(yr, mo - 1, dy).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Numerology Report - ${name}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#6366f1,#8b5cf6);min-height:100vh;padding:40px 20px}.c{max-width:800px;margin:0 auto}.h{text-align:center;color:white;margin-bottom:32px}.h h1{font-size:2.2em;margin-bottom:8px}.h p{opacity:.85}.card{background:white;border-radius:16px;padding:28px;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,.12)}.card h2{font-size:1.2em;margin-bottom:16px;color:#4f46e5;border-bottom:2px solid #e5e7eb;padding-bottom:8px}.nr{display:flex;align-items:center;margin-bottom:18px}.ci{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:1.1em;flex-shrink:0;margin-right:16px}.nr h3{font-size:.95em;color:#111;margin-bottom:2px}.nr p{font-size:.85em;color:#555;line-height:1.5}.f{text-align:center;color:white;margin-top:32px;opacity:.8;font-size:.85em}@media print{body{background:white;padding:20px}.h{color:#4f46e5}.f{color:#888}}</style></head><body><div class="c"><div class="h"><h1>Numerology Report</h1><p>${name} &bull; Born ${displayDate} &bull; ${system.charAt(0).toUpperCase()+system.slice(1)}</p></div><div class="card"><h2>Core Numbers</h2>${sections.map((s,i)=>`<div class="nr"><div class="ci" style="background:${colors[i%colors.length]}">${s.value}</div><div><h3>${s.label}</h3><p>${s.detail}</p></div></div>`).join("")}</div><div class="card"><h2>Karmic Lessons</h2>${karmicHTML}</div><div class="card"><h2>Subconscious Self: ${profile.subconscious}/9</h2><p style="color:#555">${profile.subconscious>=7?"You handle crises with confidence. When pressure hits, you've got most tools in your belt.":profile.subconscious>=5?"Solid foundation for handling challenges, with growth edges that keep things interesting.":"You may feel uncertain under sudden pressure. This is where your karmic lessons ask you to grow."}</p></div><div class="f"><p>Borrowed Curiosity LLC &copy; ${new Date().getFullYear()}</p><p style="margin-top:4px">Borrow the curiosity. Keep the wisdom.</p></div></div></body></html>`;
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Numerology Report - ${name}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#6366f1,#8b5cf6);min-height:100vh;padding:40px 20px}.c{max-width:800px;margin:0 auto}.h{text-align:center;color:white;margin-bottom:32px}.h h1{font-size:2.2em;margin-bottom:8px}.h p{opacity:.85}.card{background:white;border-radius:16px;padding:28px;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,.12)}.card h2{font-size:1.2em;margin-bottom:16px;color:#4f46e5;border-bottom:2px solid #e5e7eb;padding-bottom:8px}.nr{display:flex;align-items:center;margin-bottom:18px}.ci{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:1.1em;flex-shrink:0;margin-right:16px}.nr h3{font-size:.95em;color:#111;margin-bottom:2px}.nr p{font-size:.85em;color:#555;line-height:1.5}.f{text-align:center;color:white;margin-top:32px;opacity:.8;font-size:.85em}@media print{body{background:white;padding:20px}.h{color:#4f46e5}.f{color:#888}}</style></head><body><div class="c"><div class="h"><h1>Numerology Report</h1><p>${name} &bull; Born ${displayDate} &bull; ${system.charAt(0).toUpperCase()+system.slice(1)}</p></div><div class="card"><h2>Core Numbers</h2>${sections.map((s,i)=>`<div class="nr"><div class="ci" style="background:${colors[i%colors.length]}">${s.value}</div><div><h3>${s.label}</h3><p>${s.detail}</p></div></div>`).join("")}</div><div class="card"><h2>Karmic Lessons</h2>${karmicHTML}</div><div class="card"><h2>Subconscious Self: ${profile.subconscious}/9</h2><p style="color:#555">${profile.subconscious>=7?"You handle crises with confidence. When pressure hits, you've got most tools in your belt.":profile.subconscious>=5?"Solid foundation for handling challenges, with growth edges that keep things interesting.":"You may feel uncertain under sudden pressure. This is where your karmic lessons ask you to grow."}</p></div><div class="card"><h2>Research Interests and Topics for You</h2><p style="color:#555;margin-bottom:16px;">Based on your unique combination of Life Path ${profile.lifePath}, Expression ${profile.expression}, and Soul Urge ${profile.soulUrge}, these are subjects and areas of study that naturally align with your numerological profile. Not career advice, but fuel for your curiosity.</p>${interestsHTML}</div><div class="f"><p>Borrowed Curiosity LLC &copy; ${new Date().getFullYear()}</p><p style="margin-top:4px">Borrow the curiosity. Keep the wisdom.</p></div></div></body></html>`;
 }
