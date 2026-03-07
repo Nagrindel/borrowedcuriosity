@@ -1,112 +1,78 @@
 import { Link } from "wouter";
 import { Heart } from "lucide-react";
 
+const footerLinks = [
+  { href: "/blog", label: "Blog" },
+  { href: "/store", label: "Store" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/courses", label: "Courses" },
+  { href: "/threads", label: "Threads" },
+  { href: "/calculator", label: "Calculator" },
+  { href: "/compatibility", label: "Compatibility" },
+  { href: "/daily", label: "Daily" },
+  { href: "/crystals", label: "Crystals" },
+  { href: "/frequencies", label: "Frequencies" },
+  { href: "/identify", label: "Crystal ID" },
+  { href: "/journal", label: "Journal" },
+  { href: "/stories", label: "Stories" },
+  { href: "/quiz", label: "Quiz" },
+  { href: "/gematria", label: "Gematria" },
+  { href: "/word-lookup", label: "Words" },
+  { href: "/ask-alta", label: "Alta" },
+];
+
+const legalLinks = [
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/refund-policy", label: "Refunds" },
+  { href: "/disclaimer", label: "Disclaimer" },
+];
+
 export default function Footer() {
   return (
     <footer className="glass-strong mt-20">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          <div className="md:col-span-1">
-            <div className="flex items-center gap-2.5 mb-4">
-              <img
-                src="/logo.png"
-                alt="Borrowed Curiosity"
-                className="w-10 h-10 object-contain dark:mix-blend-screen dark:brightness-[2.5] dark:drop-shadow-[0_0_6px_rgba(139,92,246,0.4)] mix-blend-multiply brightness-0 dark:brightness-[2.5]"
-              />
-              <span className="font-display font-bold text-lg">
-                Borrowed <span className="text-gradient">Curiosity</span>
-              </span>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              Curiosity borrowed. Wisdom earned.
-              Where handcrafted goods, numerology, and creative
-              exploration meet.
-            </p>
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo.png"
+              alt="Borrowed Curiosity"
+              className="w-8 h-8 object-contain dark:mix-blend-screen dark:brightness-[2.5] dark:drop-shadow-[0_0_6px_rgba(139,92,246,0.4)] mix-blend-multiply brightness-0 dark:brightness-[2.5]"
+            />
+            <span className="font-display font-bold">
+              Borrowed <span className="text-gradient">Curiosity</span>
+            </span>
           </div>
-
-          <div>
-            <h4 className="font-display font-semibold mb-4 text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Explore
-            </h4>
-            <ul className="space-y-2.5">
-              {[
-                { href: "/blog", label: "Blog" },
-                { href: "/store", label: "Store" },
-                { href: "/gallery", label: "Gallery" },
-                { href: "/threads", label: "Threads" },
-                { href: "/gematria", label: "Gematria" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href}>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-500 transition-colors cursor-pointer">
-                      {link.label}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-display font-semibold mb-4 text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Learn
-            </h4>
-            <ul className="space-y-2.5">
-              {[
-                { href: "/calculator", label: "Numerology Calculator" },
-                { href: "/compatibility", label: "Compatibility" },
-                { href: "/daily", label: "Daily Numerology" },
-                { href: "/word-lookup", label: "Word Lookup" },
-                { href: "/courses", label: "Free Courses" },
-                { href: "/crystals", label: "Crystal Guide" },
-                { href: "/gematria", label: "Gematria" },
-                { href: "/frequencies", label: "Frequency Generator" },
-                { href: "/identify", label: "Crystal Identifier" },
-                { href: "/journal", label: "Spiritual Journal" },
-                { href: "/stories", label: "Sacred Stories" },
-                { href: "/quiz", label: "Spiritual Quiz" },
-                { href: "/ask-alta", label: "Ask Alta" },
-              ].map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href}>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-500 transition-colors cursor-pointer">
-                      {link.label}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-display font-semibold mb-4 text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Legal
-            </h4>
-            <ul className="space-y-2.5">
-              {[
-                { href: "/privacy", label: "Privacy Policy" },
-                { href: "/terms", label: "Terms of Service" },
-                { href: "/refund-policy", label: "Refund Policy" },
-                { href: "/disclaimer", label: "Disclaimer" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href}>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-500 transition-colors cursor-pointer">
-                      {link.label}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 sm:ml-auto">
+            Curiosity borrowed. Wisdom earned.
+          </p>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-200/30 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            &copy; {new Date().getFullYear()} Borrowed Curiosity LLC. All rights reserved.
+        <div className="flex flex-wrap gap-x-5 gap-y-1.5 mb-6">
+          {footerLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              <span className="text-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 transition-colors cursor-pointer">
+                {link.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="pt-5 border-t border-gray-200/30 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-[11px] text-gray-500 dark:text-gray-500">
+            &copy; {new Date().getFullYear()} Borrowed Curiosity LLC
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1">
-            Made with <Heart className="w-3 h-3 text-red-400" /> and a healthy dose of curiosity
+          <div className="flex items-center gap-4">
+            {legalLinks.map((link) => (
+              <Link key={link.href} href={link.href}>
+                <span className="text-[11px] text-gray-500 dark:text-gray-500 hover:text-brand-500 transition-colors cursor-pointer">
+                  {link.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+          <p className="text-[11px] text-gray-500 dark:text-gray-500 flex items-center gap-1">
+            Made with <Heart className="w-3 h-3 text-red-400" /> and curiosity
           </p>
         </div>
       </div>
