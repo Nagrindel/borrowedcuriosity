@@ -857,7 +857,26 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
         </div>
       )}
 
-      {filtered.length === 0 ? <p className="text-gray-500 text-sm">No orders match this filter.</p> : (
+      {filtered.length === 0 ? (
+        <div className="space-y-4">
+          <p className="text-gray-500 text-sm">No orders match this filter.</p>
+          {items.length === 0 && (
+            <div className="glass rounded-xl p-6 text-center space-y-3">
+              <Sparkles className="w-8 h-8 text-brand-400 mx-auto" />
+              <p className="text-sm text-gray-400">Want to see Admin Alta in action? Create a test service order.</p>
+              <button onClick={async () => {
+                try {
+                  await adminFetch("/api/admin/test-order", { method: "POST" });
+                  load();
+                } catch (e: any) { alert(e.message); }
+              }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-brand-500 to-violet-500 text-white hover:from-brand-600 hover:to-violet-600 transition-all">
+                <Plus className="w-4 h-4" /> Create Test Report Order
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
         <div className="space-y-2">
           {filtered.map(o => {
             const orderItems = parseItems(o.items);

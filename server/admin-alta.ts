@@ -224,4 +224,27 @@ ${reportContent}
     if (!order) return res.status(404).json({ error: "Order not found" });
     res.json({ report: order.generatedReport || null });
   });
+
+  app.post("/api/admin/test-order", adminAuth, (_req: Request, res: Response) => {
+    const testNotes = JSON.stringify([{
+      productName: "Hand-Written Numerology Report",
+      fullName: "Nicole Grindel",
+      birthDate: "1990-07-15",
+      email: "nicole@borrowedcuriosity.com",
+      specialRequests: "I would love insights into my creative potential and what areas of study might spark my curiosity."
+    }]);
+
+    db.insert(orders).values({
+      customerName: "Nicole Grindel",
+      customerEmail: "nicole@borrowedcuriosity.com",
+      items: JSON.stringify([{ name: "Hand-Written Numerology Report", price: 55, quantity: 1 }]),
+      total: 55,
+      status: "paid",
+      orderType: "service",
+      customerNotes: testNotes,
+      paymentMethod: "test",
+    }).run();
+
+    res.json({ success: true, message: "Test service order created" });
+  });
 }
