@@ -160,5 +160,6 @@ try { sqlite.exec("ALTER TABLE orders ADD COLUMN order_type TEXT NOT NULL DEFAUL
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN customer_notes TEXT"); } catch {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN shipping_address TEXT"); } catch {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN customer_phone TEXT"); } catch {}
+try { sqlite.exec("ALTER TABLE orders ADD COLUMN generated_report TEXT"); } catch {}
 
 export const db = drizzle(sqlite, { schema });

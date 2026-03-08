@@ -5,7 +5,8 @@ import {
   LayoutDashboard, FileText, ShoppingBag, Image, GraduationCap,
   MessageCircle as ThreadIcon, Users, Package, MessageSquare,
   Plus, Trash2, Pencil, X, Save, LogOut, Lock, Eye, EyeOff,
-  Loader2, ChevronDown, ChevronUp, MapPin, Phone, Truck, ClipboardList
+  Loader2, ChevronDown, ChevronUp, MapPin, Phone, Truck, ClipboardList,
+  Sparkles, Download, FileCheck, RefreshCw, ExternalLink
 } from "lucide-react";
 
 type Tab = "dashboard" | "blog" | "products" | "gallery" | "courses" | "threads" | "subscribers" | "orders" | "comments";
@@ -677,6 +678,10 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [generatingReport, setGeneratingReport] = useState<number | null>(null);
+  const [reportPreview, setReportPreview] = useState<{ orderId: number; html: string } | null>(null);
+  const [reportEditing, setReportEditing] = useState(false);
+  const [reportEditHtml, setReportEditHtml] = useState("");
 
   const load = () => { setLoading(true); adminFetch("/api/admin/orders").then((d: any) => { setItems(d); setLoading(false); }); };
   useEffect(load, []);
@@ -684,6 +689,53 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
   const updateStatus = async (id: number, status: string) => {
     await adminFetch(`/api/admin/orders/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
     load();
+  };
+
+  const generateReport = async (orderId: number) => {
+    setGeneratingReport(orderId);
+    try {
+      const result = await adminFetch("/api/admin/generate-report", {
+        method: "POST",
+        body: JSON.stringify({ orderId }),
+      });
+      if (result.success && result.report) {
+        setReportPreview({ orderId, html: result.report });
+        load();
+      } else {
+        alert(result.error || "Failed to generate report");
+      }
+    } catch (e: any) {
+      alert("Report generation failed: " + (e.message || "Unknown error"));
+    }
+    setGeneratingReport(null);
+  };
+
+  const viewExistingReport = async (orderId: number) => {
+    const result = await adminFetch(`/api/admin/orders/${orderId}/report`);
+    if (result.report) {
+      setReportPreview({ orderId, html: result.report });
+    }
+  };
+
+  const saveEditedReport = async () => {
+    if (!reportPreview) return;
+    await adminFetch(`/api/admin/orders/${reportPreview.orderId}/report`, {
+      method: "PUT",
+      body: JSON.stringify({ generatedReport: reportEditHtml }),
+    });
+    setReportPreview({ ...reportPreview, html: reportEditHtml });
+    setReportEditing(false);
+    load();
+  };
+
+  const downloadReport = (html: string, name: string) => {
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Numerology-Report-${name.replace(/\s+/g, "-")}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const statusColor = (s: string) => {
@@ -724,7 +776,7 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
 
   const paidStatuses = ["paid", "processing", "shipped", "delivered", "completed"];
   const paidTotal = items.filter(o => paidStatuses.includes(o.status)).reduce((sum, o) => sum + o.total, 0);
-  const pendingService = items.filter(o => (o.orderType === "service" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing")).length;
+  const pendingService = items.filter(o => (o.orderType === "service" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing") && !o.generatedReport).length;
   const pendingShip = items.filter(o => (o.orderType === "physical" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing")).length;
 
   const filtered = filter === "all" ? items
@@ -740,7 +792,7 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
           <h1 className="font-display text-2xl font-bold">Orders ({items.length})</h1>
           <div className="flex items-center gap-4 mt-1">
             {paidTotal > 0 && <span className="text-xs text-green-400 font-medium">Revenue: ${paidTotal.toFixed(2)}</span>}
-            {pendingService > 0 && <span className="text-xs text-violet-400 font-medium">{pendingService} report{pendingService > 1 ? "s" : ""} to write</span>}
+            {pendingService > 0 && <span className="text-xs text-violet-400 font-medium">{pendingService} report{pendingService > 1 ? "s" : ""} to generate</span>}
             {pendingShip > 0 && <span className="text-xs text-cyan-400 font-medium">{pendingShip} to ship</span>}
           </div>
         </div>
@@ -753,6 +805,58 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
           ))}
         </div>
       </div>
+      {reportPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => { setReportPreview(null); setReportEditing(false); }}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-brand-400" />
+                <h3 className="font-display text-lg font-bold">Report Preview</h3>
+                <span className="text-xs text-gray-500">Order #{reportPreview.orderId}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {!reportEditing && (
+                  <>
+                    <button onClick={() => { setReportEditHtml(reportPreview.html); setReportEditing(true); }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition-colors">
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button onClick={() => {
+                      const w = window.open("", "_blank");
+                      if (w) { w.document.write(reportPreview.html); w.document.close(); }
+                    }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 transition-colors">
+                      <ExternalLink className="w-3.5 h-3.5" /> Open Full
+                    </button>
+                    <button onClick={() => downloadReport(reportPreview.html, `order-${reportPreview.orderId}`)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors">
+                      <Download className="w-3.5 h-3.5" /> Download
+                    </button>
+                  </>
+                )}
+                {reportEditing && (
+                  <button onClick={saveEditedReport}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors">
+                    <Save className="w-3.5 h-3.5" /> Save Changes
+                  </button>
+                )}
+                <button onClick={() => { setReportPreview(null); setReportEditing(false); }} className="p-2 rounded-lg hover:bg-red-500/10">
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {reportEditing ? (
+                <textarea value={reportEditHtml} onChange={e => setReportEditHtml(e.target.value)}
+                  className="w-full h-full min-h-[60vh] p-4 bg-gray-950 text-gray-300 text-xs font-mono border-0 outline-none resize-none" />
+              ) : (
+                <iframe srcDoc={reportPreview.html} className="w-full h-full min-h-[70vh] border-0 bg-white rounded-b-2xl" title="Report Preview" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {filtered.length === 0 ? <p className="text-gray-500 text-sm">No orders match this filter.</p> : (
         <div className="space-y-2">
           {filtered.map(o => {
@@ -894,6 +998,55 @@ function OrdersTab({ adminFetch }: { adminFetch: any }) {
                         ))}
                       </div>
                     )}
+                    {isService && (
+                      <div className="rounded-xl bg-brand-500/10 border border-brand-500/20 p-4 space-y-3">
+                        <p className="text-xs font-medium text-brand-400 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5" /> Alta Report Generator
+                        </p>
+                        {o.generatedReport ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <FileCheck className="w-4 h-4 text-emerald-400" />
+                              <span className="text-xs text-emerald-400 font-medium">Report generated</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button onClick={() => viewExistingReport(o.id)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-brand-500/15 text-brand-400 hover:bg-brand-500/25 transition-colors">
+                                <Eye className="w-3.5 h-3.5" /> View Report
+                              </button>
+                              <button onClick={() => {
+                                const name = notes?.[0]?.fullName || "Client";
+                                downloadReport(o.generatedReport, name);
+                              }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors">
+                                <Download className="w-3.5 h-3.5" /> Download HTML
+                              </button>
+                              <button onClick={() => generateReport(o.id)}
+                                disabled={generatingReport === o.id}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition-colors">
+                                <RefreshCw className={`w-3.5 h-3.5 ${generatingReport === o.id ? "animate-spin" : ""}`} /> Regenerate
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-400">
+                              Alta will compute the full numerology profile and write a personalized multi-page report for this client.
+                            </p>
+                            <button onClick={() => generateReport(o.id)}
+                              disabled={generatingReport === o.id}
+                              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-brand-500 to-violet-500 text-white hover:from-brand-600 hover:to-violet-600 transition-all disabled:opacity-50">
+                              {generatingReport === o.id ? (
+                                <><Loader2 className="w-4 h-4 animate-spin" /> Alta is writing the report...</>
+                              ) : (
+                                <><Sparkles className="w-4 h-4" /> Generate Report with Alta</>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {o.stripeSessionId && (
                       <div className="text-[11px] text-gray-600 space-y-0.5">
                         <p>Session: {o.stripeSessionId.slice(0, 30)}...</p>
