@@ -353,7 +353,7 @@ export default function SalveBuilder() {
       id: Date.now(),
       name: `Custom Sacred Salve (${desc})`,
       price: salveTotal,
-      productType: "physical",
+      productType: "custom_salve",
     });
     setSalveAdded(true);
     setTimeout(() => setSalveAdded(false), 3000);

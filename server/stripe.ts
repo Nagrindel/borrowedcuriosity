@@ -24,6 +24,7 @@ interface LineItem {
   price: number;
   quantity: number;
   imageUrl?: string | null;
+  custom?: boolean;
 }
 
 function isStripeConfigured(): boolean {
@@ -77,6 +78,12 @@ export function registerStripeRoutes(app: Express) {
       }
 
       for (const item of items) {
+        if (item.custom) {
+          if (item.price <= 0 || item.price > 500) {
+            return res.status(400).json({ error: `Invalid price for custom item "${item.name}"` });
+          }
+          continue;
+        }
         const product = db.select().from(products).where(eq(products.id, item.productId)).get();
         if (!product) {
           return res.status(400).json({ error: `Product "${item.name}" not found` });

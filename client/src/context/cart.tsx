@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     setItems(prev => {
-      if (item.productType === "service") {
+      if (item.productType === "service" || item.productType === "custom_salve") {
         return [...prev, { ...item, quantity: 1 }];
       }
       const existing = prev.find(i => i.id === item.id);

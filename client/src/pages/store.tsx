@@ -90,7 +90,8 @@ export default function Store() {
         }));
 
       const lineItems = cart.items.map(item => {
-        const prod = productMap.get(item.id);
+        const isCustom = item.productType === "custom_salve";
+        const prod = isCustom ? null : productMap.get(item.id);
         return {
           productId: item.id,
           name: prod?.name || item.name,
@@ -98,6 +99,7 @@ export default function Store() {
           quantity: item.quantity,
           imageUrl: prod?.imageUrl || null,
           productType: item.productType || "physical",
+          ...(isCustom ? { custom: true } : {}),
         };
       });
 
