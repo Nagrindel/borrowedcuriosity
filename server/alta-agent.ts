@@ -40,6 +40,16 @@ PERSONALITY:
 SLUG GENERATION:
 - When creating blog posts, generate a URL-friendly slug from the title (lowercase, hyphens, no special chars).
 
+IMAGE GENERATION:
+- When creating blog posts, products, or gallery items, ALWAYS provide a descriptive imagePrompt.
+- Write the imagePrompt like a photographer or artist: describe the scene, lighting, mood, colors, and objects.
+- Good imagePrompt examples:
+  - "glowing amethyst crystal cluster on dark velvet with soft purple bokeh lights, mystical spiritual photography"
+  - "handcrafted healing salve in amber glass jar surrounded by dried lavender and rose petals, warm natural lighting"
+  - "sacred geometry mandala with golden ratio spirals, deep indigo background with starlight, ethereal digital art"
+  - "open journal with numerology calculations next to crystals and candles, cozy spiritual workspace, warm tones"
+- Avoid generic prompts. Be specific and visual. Match the mood and topic of the content.
+
 RULES:
 - Never use em dashes. Use commas, periods, or rewrite instead.
 - No emojis in any content you create.
@@ -52,7 +62,7 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "create_blog_post",
-      description: "Create a new blog post on the site. Write high-quality spiritual/numerology content.",
+      description: "Create a new blog post on the site. Write high-quality spiritual/numerology content. Always provide an imagePrompt to generate a beautiful cover image.",
       parameters: {
         type: "object",
         properties: {
@@ -62,8 +72,9 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
           content: { type: "string", description: "Full HTML blog post content. Write substantial, real content." },
           category: { type: "string", description: "Category: numerology, crystals, spirituality, wellness, or general" },
           readingTime: { type: "string", description: "Estimated reading time, e.g. '5 min read'" },
+          imagePrompt: { type: "string", description: "A descriptive prompt for the AI-generated cover image. Be visual and specific, e.g. 'mystical amethyst crystals glowing with purple light on dark velvet, spiritual healing aesthetic'" },
         },
-        required: ["title", "slug", "excerpt", "content", "category", "readingTime"],
+        required: ["title", "slug", "excerpt", "content", "category", "readingTime", "imagePrompt"],
       },
     },
   },
@@ -110,7 +121,7 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "create_product",
-      description: "Create a new product in the store.",
+      description: "Create a new product in the store. Always provide an imagePrompt for the product image.",
       parameters: {
         type: "object",
         properties: {
@@ -119,6 +130,7 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
           price: { type: "number", description: "Price in dollars (e.g. 24.00)" },
           category: { type: "string", description: "Category: salve, jewelry, service, crystal, or other" },
           productType: { type: "string", description: "Type: physical or service", enum: ["physical", "service"] },
+          imagePrompt: { type: "string", description: "Descriptive prompt for product image, e.g. 'handcrafted healing salve in amber glass jar with lavender and crystals, product photography'" },
         },
         required: ["name", "description", "price", "category"],
       },
@@ -166,7 +178,7 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "create_gallery_item",
-      description: "Create a new gallery item (photo, video, or downloadable content).",
+      description: "Create a new gallery item (photo, video, or downloadable content). Provide imagePrompt for photo items.",
       parameters: {
         type: "object",
         properties: {
@@ -174,6 +186,7 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
           description: { type: "string" },
           type: { type: "string", enum: ["photo", "video", "download"] },
           mediaUrl: { type: "string", description: "URL to the media" },
+          imagePrompt: { type: "string", description: "Descriptive prompt for the gallery image" },
         },
         required: ["title", "description", "type"],
       },
@@ -314,11 +327,24 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
 
 type ToolResult = { success: boolean; data?: any; error?: string };
 
+function generateImageUrl(prompt: string, width = 1200, height = 630): string {
+  const cleaned = prompt
+    .replace(/[^a-zA-Z0-9\s,.-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toLowerCase()
+    .slice(0, 200);
+  return `https://placeholdr.dev/${width}x${height}/${encodeURIComponent(cleaned)}?style=photographic`;
+}
+
 function executeTool(name: string, args: Record<string, any>): ToolResult {
   try {
     switch (name) {
       case "create_blog_post": {
         const gradient = "from-violet-600 to-purple-700";
+        const imageUrl = args.imagePrompt
+          ? generateImageUrl(args.imagePrompt)
+          : generateImageUrl(args.title + " " + (args.category || "spiritual"));
         db.insert(blogPosts).values({
           title: args.title,
           slug: args.slug,
@@ -327,10 +353,11 @@ function executeTool(name: string, args: Record<string, any>): ToolResult {
           category: args.category || "general",
           readingTime: args.readingTime || "5 min read",
           gradient,
+          imageUrl,
           published: true,
         }).run();
         const post = db.select().from(blogPosts).where(eq(blogPosts.slug, args.slug)).get();
-        return { success: true, data: { id: post?.id, title: args.title, slug: args.slug, message: "Blog post created and published" } };
+        return { success: true, data: { id: post?.id, title: args.title, slug: args.slug, imageUrl, message: "Blog post created and published with generated cover image" } };
       }
 
       case "update_blog_post": {
@@ -363,6 +390,9 @@ function executeTool(name: string, args: Record<string, any>): ToolResult {
 
       case "create_product": {
         const gradient = "from-amber-600 to-orange-700";
+        const imageUrl = args.imagePrompt
+          ? generateImageUrl(args.imagePrompt, 800, 800)
+          : generateImageUrl(args.name + " " + (args.category || "product"), 800, 800);
         db.insert(products).values({
           name: args.name,
           description: args.description,
@@ -370,10 +400,11 @@ function executeTool(name: string, args: Record<string, any>): ToolResult {
           category: args.category || "other",
           productType: args.productType || "physical",
           gradient,
+          imageUrl,
           inStock: true,
         }).run();
         const prod = db.select().from(products).where(eq(products.name, args.name)).get();
-        return { success: true, data: { id: prod?.id, name: args.name, price: args.price, message: `Product "${args.name}" created at $${args.price}` } };
+        return { success: true, data: { id: prod?.id, name: args.name, price: args.price, imageUrl, message: `Product "${args.name}" created at $${args.price} with generated image` } };
       }
 
       case "update_product": {
@@ -406,14 +437,16 @@ function executeTool(name: string, args: Record<string, any>): ToolResult {
 
       case "create_gallery_item": {
         const gradient = "from-cyan-600 to-blue-700";
+        const mediaUrl = args.mediaUrl
+          || (args.imagePrompt ? generateImageUrl(args.imagePrompt, 1200, 900) : null);
         db.insert(galleryItems).values({
           title: args.title,
           description: args.description,
           type: args.type,
           gradient,
-          mediaUrl: args.mediaUrl || null,
+          mediaUrl,
         }).run();
-        return { success: true, data: { title: args.title, type: args.type, message: `Gallery item "${args.title}" created` } };
+        return { success: true, data: { title: args.title, type: args.type, mediaUrl, message: `Gallery item "${args.title}" created${mediaUrl ? " with generated image" : ""}` } };
       }
 
       case "delete_gallery_item": {
