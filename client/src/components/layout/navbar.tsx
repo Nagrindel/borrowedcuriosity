@@ -34,6 +34,7 @@ const moreLinks = [
   { href: "/oil-quiz", label: "Oil Quiz" },
   { href: "/mirror", label: "Pattern Mirror" },
   { href: "/healing-threads", label: "Healing Threads" },
+  { href: "/remedies", label: "Botanical Remedies" },
   { href: "/gallery", label: "Gallery" },
   { href: "/threads", label: "Threads" },
   { href: "/gematria", label: "Gematria" },

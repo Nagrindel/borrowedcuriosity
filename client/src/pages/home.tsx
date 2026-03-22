@@ -6,7 +6,7 @@ import {
   Gem, Leaf, Zap, Hash, Calculator, Star, ChevronRight,
   Camera, Brain, Feather, Music, Dice5, Library, Flower2,
   FileText, PenTool, Flame, Droplets, FlaskConical, Eye,
-  Layers,
+  Layers, Sprout,
 } from "lucide-react";
 
 const fade = {
@@ -52,6 +52,7 @@ const TOOLS = [
   { icon: Droplets, label: "Essential Oil Quiz", href: "/oil-quiz", color: "from-yellow-500 to-amber-600", desc: "Find your perfect essential oil blend based on your needs and energy." },
   { icon: Eye, label: "Pattern Mirror", href: "/mirror", color: "from-fuchsia-500 to-purple-700", desc: "Discover your archetype, analyze journals, and decode symbols." },
   { icon: Layers, label: "Healing Threads", href: "/healing-threads", color: "from-sky-500 to-blue-700", desc: "Nonlinear healing passages with soul voices and personal thread creation." },
+  { icon: Sprout, label: "Botanical Remedies", href: "/remedies", color: "from-green-600 to-emerald-700", desc: "Find herbal relief by symptom. Real plants, real preparations, real wisdom." },
 ];
 
 export default function Home() {

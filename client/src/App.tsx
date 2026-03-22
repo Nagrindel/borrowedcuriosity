@@ -35,6 +35,7 @@ import SalveBuilder from "@/pages/salve-builder";
 import OilQuiz from "@/pages/oil-quiz";
 import Mirror from "@/pages/mirror";
 import HealingThreads from "@/pages/healing-threads";
+import Remedies from "@/pages/remedies";
 import Admin from "@/pages/admin";
 import { AdminProvider } from "@/context/admin";
 
@@ -91,6 +92,7 @@ export default function App() {
               <Route path="/oil-quiz" component={OilQuiz} />
               <Route path="/mirror" component={Mirror} />
               <Route path="/healing-threads" component={HealingThreads} />
+              <Route path="/remedies" component={Remedies} />
               <Route path="/order-success" component={OrderSuccess} />
               <Route>
                 <div className="section-padding text-center">
