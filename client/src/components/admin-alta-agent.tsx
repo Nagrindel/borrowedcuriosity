@@ -116,26 +116,37 @@ function ActionCard({ action }: { action: ActionEvent }) {
 }
 
 function DataTable({ data }: { data: any }) {
-  if (!data) return null;
+  if (!data || typeof data !== "object") return null;
 
-  const items = data.posts || data.products || data.orders || data.items || data.courses;
-  if (!Array.isArray(items) || items.length === 0) {
-    if (data.blogPosts !== undefined) {
-      return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-          {Object.entries(data).map(([key, val]) => (
-            <div key={key} className="rounded-lg bg-white/5 border border-white/10 p-2.5 text-center">
-              <div className="text-lg font-display text-white">{String(val)}</div>
-              <div className="text-[10px] text-gray-500 uppercase tracking-wider">{key}</div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
+  const isStatsObject =
+    typeof data.blogPosts === "number" ||
+    typeof data.products === "number" ||
+    typeof data.orders === "number";
+
+  if (isStatsObject) {
+    const entries = Object.entries(data).filter(([, v]) => typeof v === "number" || typeof v === "string");
+    if (entries.length === 0) return null;
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+        {entries.map(([key, val]) => (
+          <div key={key} className="rounded-lg bg-white/5 border border-white/10 p-2.5 text-center">
+            <div className="text-lg font-display text-white">{String(val)}</div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider">{key}</div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
-  const cols = Object.keys(items[0]).filter(k => !["content", "gradient", "description", "excerpt", "mediaUrl", "downloadUrl", "imageUrl", "shippingAddress"].includes(k));
+  const items = data.posts || data.products || data.orders || data.items || data.courses;
+  if (!Array.isArray(items) || items.length === 0) return null;
+
+  const firstItem = items.find((it: any) => it != null && typeof it === "object");
+  if (!firstItem) return null;
+
+  const HIDDEN = new Set(["content", "gradient", "description", "excerpt", "mediaUrl", "downloadUrl", "imageUrl", "shippingAddress", "customerNotes", "generatedReport", "customerPhone"]);
+  const cols = Object.keys(firstItem).filter(k => !HIDDEN.has(k));
+  if (cols.length === 0) return null;
 
   return (
     <div className="mt-2 overflow-x-auto rounded-lg border border-white/10">
@@ -150,15 +161,18 @@ function DataTable({ data }: { data: any }) {
           </tr>
         </thead>
         <tbody>
-          {items.slice(0, 25).map((item: any, i: number) => (
-            <tr key={i} className="border-b border-white/5 hover:bg-white/5">
-              {cols.map(c => (
-                <td key={c} className="px-3 py-2 text-gray-300 max-w-[200px] truncate">
-                  {typeof item[c] === "boolean" ? (item[c] ? "Yes" : "No") : String(item[c] ?? "")}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {items.slice(0, 25).map((item: any, i: number) => {
+            if (!item || typeof item !== "object") return null;
+            return (
+              <tr key={i} className="border-b border-white/5 hover:bg-white/5">
+                {cols.map(c => (
+                  <td key={c} className="px-3 py-2 text-gray-300 max-w-[200px] truncate">
+                    {typeof item[c] === "boolean" ? (item[c] ? "Yes" : "No") : String(item[c] ?? "")}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {items.length > 25 && (
@@ -340,15 +354,11 @@ export default function AdminAltaAgent() {
                     {msg.actions.map((action, i) => (
                       <ActionCard key={i} action={action} />
                     ))}
-                    {msg.actions.some(a => a.result.success && a.result.data && (a.result.data.posts || a.result.data.products || a.result.data.orders || a.result.data.items || a.result.data.courses || a.result.data.blogPosts !== undefined)) && (
-                      <div>
-                        {msg.actions.map((a, i) =>
-                          a.result.success && a.result.data ? (
-                            <DataTable key={i} data={a.result.data} />
-                          ) : null,
-                        )}
-                      </div>
-                    )}
+                    {msg.actions
+                      .filter(a => a.result?.success && a.result?.data)
+                      .map((a, i) => (
+                        <DataTable key={`dt-${i}`} data={a.result.data} />
+                      ))}
                   </div>
                 )}
 
