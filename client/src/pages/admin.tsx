@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useAdmin } from "@/context/admin";
 import ImageUpload from "@/components/image-upload";
 import {
@@ -6,13 +6,16 @@ import {
   MessageCircle as ThreadIcon, Users, Package, MessageSquare,
   Plus, Trash2, Pencil, X, Save, LogOut, Lock, Eye, EyeOff,
   Loader2, ChevronDown, ChevronUp, MapPin, Phone, Truck, ClipboardList,
-  Sparkles, Download, FileCheck, RefreshCw, ExternalLink
+  Sparkles, Download, FileCheck, RefreshCw, ExternalLink, Zap
 } from "lucide-react";
 
-type Tab = "dashboard" | "blog" | "products" | "gallery" | "courses" | "threads" | "subscribers" | "orders" | "comments";
+const AdminAltaAgent = lazy(() => import("@/components/admin-alta-agent"));
+
+type Tab = "dashboard" | "blog" | "products" | "gallery" | "courses" | "threads" | "subscribers" | "orders" | "comments" | "alta-agent";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "alta-agent", label: "Alta Agent", icon: Zap },
   { id: "blog", label: "Blog Posts", icon: FileText },
   { id: "products", label: "Products", icon: ShoppingBag },
   { id: "gallery", label: "Gallery", icon: Image },
@@ -100,6 +103,7 @@ export default function Admin() {
       {/* Content */}
       <main className="flex-1 overflow-y-auto p-6">
         {activeTab === "dashboard" && <DashboardTab adminFetch={adminFetch} />}
+        {activeTab === "alta-agent" && <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin text-violet-400" /></div>}><AdminAltaAgent /></Suspense>}
         {activeTab === "blog" && <BlogTab adminFetch={adminFetch} />}
         {activeTab === "products" && <ProductsTab adminFetch={adminFetch} />}
         {activeTab === "gallery" && <GalleryTab adminFetch={adminFetch} />}
