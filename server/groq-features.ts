@@ -436,7 +436,7 @@ No em dashes. No emojis. Be genuine and psychologically grounded.`,
         model: "llama-3.3-70b-versatile",
         messages: [{
           role: "user",
-          content: `Based on this wellness assessment: ${JSON.stringify(answers)}, recommend a personalized healing combination. Return JSON (no markdown, no backticks): { "oils": [{"name":"oil name","benefit":"why this oil"}], "crystals": [{"name":"crystal name","benefit":"why this crystal"}], "frequency": {"hz": number, "name":"frequency name","benefit":"why this frequency"}, "salveRecipe": {"name":"creative recipe name","ingredients":["ingredient1","ingredient2"],"instructions":"how to make it"}, "summary": "2-3 sentence personalized wellness summary" }. Use real essential oils, real crystals, and real solfeggio frequencies. No em dashes. No emojis.`,
+          content: `Based on this wellness assessment: ${JSON.stringify(answers)}, recommend a personalized healing combination. Return JSON (no markdown, no backticks): { "oils": [{"name":"oil name","benefits":["benefit 1","benefit 2"]}], "crystals": [{"name":"crystal name","benefits":["benefit 1","benefit 2"]}], "frequency": {"hz":"528","name":"frequency name","description":"why this frequency"}, "recipe": {"name":"creative recipe name","ingredients":["ingredient1","ingredient2"],"instructions":["step 1","step 2","step 3"]}, "summary": "2-3 sentence personalized wellness summary" }. Return 3-4 oils and 2-3 crystals. Use real essential oils, real crystals, and real solfeggio frequencies. No em dashes. No emojis.`,
         }],
         temperature: 0.8,
         max_tokens: 1500,
