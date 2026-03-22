@@ -4,7 +4,9 @@ import {
   Sparkles, ShoppingBag, BookOpen, GalleryVerticalEnd,
   MessageCircle, GraduationCap, ArrowRight, Heart, Calendar,
   Gem, Leaf, Zap, Hash, Calculator, Star, ChevronRight,
-  Camera, Brain, Feather, Music,
+  Camera, Brain, Feather, Music, Dice5, Library, Flower2,
+  FileText, PenTool, Flame, Droplets, FlaskConical, Eye,
+  Layers,
 } from "lucide-react";
 
 const fade = {
@@ -40,6 +42,16 @@ const TOOLS = [
   { icon: Feather, label: "Spiritual Journal", href: "/journal", color: "from-emerald-500 to-green-600", desc: "Personalized journal prompts based on mood and numerology." },
   { icon: BookOpen, label: "Sacred Stories", href: "/stories", color: "from-amber-500 to-yellow-600", desc: "Crystal mythology, biblical stones, and sacred traditions." },
   { icon: Brain, label: "Spiritual Quiz", href: "/quiz", color: "from-cyan-500 to-sky-600", desc: "Test your knowledge. Unique questions generated every time." },
+  { icon: Dice5, label: "Digital Oracle", href: "/oracle", color: "from-indigo-500 to-violet-700", desc: "Card draws, dice oracle, decision guidance, and birth card archetypes." },
+  { icon: Library, label: "Spiral Library", href: "/library", color: "from-amber-600 to-rose-600", desc: "Curated spiritual books with key teachings and personal reading lists." },
+  { icon: Flower2, label: "Yoga Flows", href: "/yoga", color: "from-green-500 to-teal-600", desc: "Poses, custom flows, mood sequences, color therapy, and truth cards." },
+  { icon: FileText, label: "Worksheet Generator", href: "/worksheets", color: "from-blue-500 to-indigo-600", desc: "Create worksheets, questionnaires, and journal prompts on any topic." },
+  { icon: PenTool, label: "Content Creator", href: "/creator", color: "from-pink-500 to-rose-600", desc: "Generate blog outlines, meditations, affirmations, and newsletters." },
+  { icon: Flame, label: "Transformation Tools", href: "/transformation", color: "from-orange-500 to-red-600", desc: "Rewrite limiting beliefs, explore spiritual topics, check your alignment." },
+  { icon: FlaskConical, label: "Salve Builder", href: "/salve-builder", color: "from-lime-500 to-emerald-600", desc: "Wellness assessment with personalized oils, crystals, and salve recipes." },
+  { icon: Droplets, label: "Essential Oil Quiz", href: "/oil-quiz", color: "from-yellow-500 to-amber-600", desc: "Find your perfect essential oil blend based on your needs and energy." },
+  { icon: Eye, label: "Pattern Mirror", href: "/mirror", color: "from-fuchsia-500 to-purple-700", desc: "Discover your archetype, analyze journals, and decode symbols." },
+  { icon: Layers, label: "Healing Threads", href: "/healing-threads", color: "from-sky-500 to-blue-700", desc: "Nonlinear healing passages with soul voices and personal thread creation." },
 ];
 
 export default function Home() {

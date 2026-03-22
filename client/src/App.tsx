@@ -25,6 +25,16 @@ import CrystalIdentifier from "@/pages/crystal-identifier";
 import Journal from "@/pages/journal";
 import SacredStories from "@/pages/sacred-stories";
 import QuizPage from "@/pages/quiz";
+import Oracle from "@/pages/oracle";
+import Library from "@/pages/library";
+import Yoga from "@/pages/yoga";
+import Worksheets from "@/pages/worksheets";
+import Creator from "@/pages/creator";
+import Transformation from "@/pages/transformation";
+import SalveBuilder from "@/pages/salve-builder";
+import OilQuiz from "@/pages/oil-quiz";
+import Mirror from "@/pages/mirror";
+import HealingThreads from "@/pages/healing-threads";
 import Admin from "@/pages/admin";
 import { AdminProvider } from "@/context/admin";
 
@@ -71,6 +81,16 @@ export default function App() {
               <Route path="/journal" component={Journal} />
               <Route path="/stories" component={SacredStories} />
               <Route path="/quiz" component={QuizPage} />
+              <Route path="/oracle" component={Oracle} />
+              <Route path="/library" component={Library} />
+              <Route path="/yoga" component={Yoga} />
+              <Route path="/worksheets" component={Worksheets} />
+              <Route path="/creator" component={Creator} />
+              <Route path="/transformation" component={Transformation} />
+              <Route path="/salve-builder" component={SalveBuilder} />
+              <Route path="/oil-quiz" component={OilQuiz} />
+              <Route path="/mirror" component={Mirror} />
+              <Route path="/healing-threads" component={HealingThreads} />
               <Route path="/order-success" component={OrderSuccess} />
               <Route>
                 <div className="section-padding text-center">

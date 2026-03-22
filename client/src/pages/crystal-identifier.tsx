@@ -10,12 +10,13 @@ interface CrystalResult {
   metaphysical?: { chakras: string[]; element: string; zodiac: string[]; vibration: number; properties: string[]; healingUses: string; emotionalUses: string; spiritualUses: string };
   sacredStories?: { biblical: string; mythology: string; cultural: string; folklore: string };
   careGuide?: { cleansing: string[]; charging: string[]; avoid: string[]; pairsWith: string[] };
+  marketValue?: { priceRange: string; rarity: string; collectibility: string; factors: string[]; investmentNotes: string };
   numerologyLink?: { number: number; reason: string };
   funFact?: string;
   raw?: string;
 }
 
-type Tab = "metaphysical" | "geological" | "stories" | "care";
+type Tab = "metaphysical" | "geological" | "stories" | "care" | "market";
 
 export default function CrystalIdentifier() {
   const [file, setFile] = useState<File | null>(null);
@@ -77,6 +78,7 @@ export default function CrystalIdentifier() {
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "metaphysical", label: "Metaphysical", icon: <Sparkles className="w-4 h-4" /> },
     { id: "geological", label: "Geological", icon: <Gem className="w-4 h-4" /> },
+    { id: "market", label: "Market Value", icon: <Diamond className="w-4 h-4" /> },
     { id: "stories", label: "Sacred Stories", icon: <BookOpen className="w-4 h-4" /> },
     { id: "care", label: "Care Guide", icon: <Heart className="w-4 h-4" /> },
   ];
@@ -275,6 +277,48 @@ export default function CrystalIdentifier() {
                       <p className="text-sm text-gray-400 leading-relaxed">{x.text}</p>
                     </div>
                   ))}
+                </motion.div>
+              )}
+
+              {tab === "market" && result.marketValue && (
+                <motion.div key="market" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="space-y-4">
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    <div className="glass rounded-xl p-4 text-center">
+                      <p className="text-xs text-gray-500 mb-1">Price Range</p>
+                      <p className="font-display font-bold text-lg text-emerald-400">{result.marketValue.priceRange}</p>
+                    </div>
+                    <div className="glass rounded-xl p-4 text-center">
+                      <p className="text-xs text-gray-500 mb-1">Rarity</p>
+                      <p className="font-display font-bold text-lg text-amber-400">{result.marketValue.rarity}</p>
+                    </div>
+                    <div className="glass rounded-xl p-4 text-center">
+                      <p className="text-xs text-gray-500 mb-1">Collectibility</p>
+                      <p className="font-display font-bold text-lg text-violet-400">{result.marketValue.collectibility}</p>
+                    </div>
+                  </div>
+                  {result.marketValue.factors?.length > 0 && (
+                    <div className="glass rounded-xl p-4">
+                      <h4 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
+                        <Star className="w-4 h-4 text-amber-400" /> Value Factors
+                      </h4>
+                      <div className="space-y-1.5">
+                        {result.marketValue.factors.map(f => (
+                          <p key={f} className="text-sm text-gray-400 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" /> {f}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.marketValue.investmentNotes && (
+                    <div className="glass rounded-xl p-4">
+                      <h4 className="font-display font-semibold text-sm mb-2 flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-cyan-400" /> Market Notes
+                      </h4>
+                      <p className="text-sm text-gray-400 leading-relaxed">{result.marketValue.investmentNotes}</p>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
