@@ -80,13 +80,25 @@ export default function BlogPostPage() {
             {post.title}
           </h1>
 
-          <div className="prose prose-lg dark:prose-invert max-w-none mb-16">
-            {post.content.split("\n\n").map((paragraph, i) => (
-              <p key={i} className="text-gray-600 dark:text-gray-400 leading-relaxed mb-5">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          {/<[a-z][\s\S]*>/i.test(post.content) ? (
+            <div
+              className="prose prose-lg dark:prose-invert max-w-none mb-16
+                prose-headings:font-display prose-headings:text-gray-900 dark:prose-headings:text-white
+                prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-p:leading-relaxed
+                prose-a:text-brand-500 prose-strong:text-gray-800 dark:prose-strong:text-gray-200
+                prose-ul:text-gray-600 dark:prose-ul:text-gray-400
+                prose-ol:text-gray-600 dark:prose-ol:text-gray-400"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          ) : (
+            <div className="prose prose-lg dark:prose-invert max-w-none mb-16">
+              {post.content.split("\n\n").map((paragraph, i) => (
+                <p key={i} className="text-gray-600 dark:text-gray-400 leading-relaxed mb-5">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         <Comments targetType="blog" targetId={post.id} />
