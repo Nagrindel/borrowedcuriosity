@@ -466,7 +466,7 @@ function ServiceDetailsModal({
               <textarea
                 value={specialRequests}
                 onChange={e => setSpecialRequests(e.target.value)}
-                placeholder="Anything specific you'd like Nicole to focus on?"
+                placeholder="Anything specific you'd like us to focus on?"
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl glass border border-white/10 focus:border-brand-500/50 outline-none text-sm resize-y"
               />

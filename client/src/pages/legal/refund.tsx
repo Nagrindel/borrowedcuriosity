@@ -22,7 +22,7 @@ export default function RefundPolicy() {
         </ul>
       </Section>
 
-      <Section title="3. Hand-Written Numerology Reports">
+      <Section title="3. Numerology Reports">
         <p>
           Because written numerology reports are personalized services created specifically for you:
         </p>

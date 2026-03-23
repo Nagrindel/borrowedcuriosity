@@ -313,7 +313,7 @@ export default function CalculatorPage() {
                 </div>
 
                 <motion.div {...fadeUp} className="text-center py-6">
-                  <p className="text-gray-500 text-sm mb-4">Want a deeper, hand-written analysis that connects all your numbers?</p>
+                  <p className="text-gray-500 text-sm mb-4">Want a deeper, personalized analysis that connects all your numbers?</p>
                   <a href="/store" className="btn-primary inline-flex items-center gap-2 px-6 py-3">
                     <Sparkles className="w-4 h-4" /> Order a Written Report
                   </a>

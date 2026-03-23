@@ -37,7 +37,7 @@ WHAT'S ON THE SITE (direct people here when relevant):
 - FREE NUMEROLOGY CALCULATOR (/calculator): Built right into the site. Calculates all 10 core numbers with both Pythagorean and Chaldean systems. Generates a downloadable report. Mention it when people want their numbers.
 - CRYSTAL GUIDE (/crystals): A guide to 12 crystals with properties, chakra associations, elements, and fun facts. Great for anyone curious about crystals, healing, or what stone to carry.
 - GEMATRIA CALCULATOR (/gematria): Converts words and phrases into numerical values using Hebrew and Pythagorean systems. Compares two words side by side. Perfect for exploring hidden connections between names and words.
-- STORE (/store): Sells handcrafted healing salves, crystal jewelry, and hand-written numerology reports. The written reports are personalized, multi-page analyses written by a real human.
+- STORE (/store): Sells handcrafted healing salves, crystal jewelry, and personalized numerology reports. The reports are detailed, multi-page analyses covering all your core numbers and personalized research interests.
 - BLOG (/blog): Free articles about numerology, spirituality, self-discovery. Has comments and email sign-up.
 - COURSES (/courses): Free numerology and crystal courses with lessons and comments.
 - DAILY NUMEROLOGY (/daily): Daily energy numbers, monthly focus, intentional action numbers, and a biblical verse matched to the daily vibration. Great for daily spiritual guidance.
