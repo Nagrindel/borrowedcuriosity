@@ -350,6 +350,14 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
+      name: "import_stripe_orders",
+      description: "Import ALL historical completed orders from Stripe into the database. Use this to recover orders after a database reset or to pull in all past Stripe payments. Skips orders already in the database.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "get_site_stats",
       description: "Get site-wide statistics: counts of posts, products, orders, subscribers, revenue, pending actions, reports to generate, orders to ship.",
       parameters: { type: "object", properties: {}, required: [] },
@@ -637,7 +645,8 @@ async function executeTool(name: string, args: Record<string, any>): Promise<Too
 
       case "sync_orders": {
         try {
-          const res = await fetch(`http://localhost:${process.env.PORT || 5000}/api/admin/sync-orders`, {
+          const port = process.env.PORT || 5000;
+          const res = await fetch(`http://localhost:${port}/api/admin/sync-orders`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
@@ -653,6 +662,27 @@ async function executeTool(name: string, args: Record<string, any>): Promise<Too
           };
         } catch (err: any) {
           return { success: false, error: `Sync failed: ${err.message}` };
+        }
+      }
+
+      case "import_stripe_orders": {
+        try {
+          const port = process.env.PORT || 5000;
+          const res = await fetch(`http://localhost:${port}/api/admin/import-stripe-orders`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await res.json();
+          return {
+            success: true,
+            data: {
+              imported: data.imported || 0,
+              skipped: data.skipped || 0,
+              message: data.message || `Imported ${data.imported || 0} orders from Stripe.`,
+            },
+          };
+        } catch (err: any) {
+          return { success: false, error: `Import failed: ${err.message}` };
         }
       }
 

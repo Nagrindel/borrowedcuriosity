@@ -329,4 +329,108 @@ export function registerStripeRoutes(app: Express) {
     console.log(`[sync] synced: ${synced}, cancelled: ${cancelled}, cleaned: ${cleaned}`);
     res.json({ synced, cancelled, cleaned, total: pendingOrders.length });
   });
+
+  // Import all historical orders from Stripe
+  app.post("/api/admin/import-stripe-orders", async (req: Request, res: Response) => {
+    if (!isStripeConfigured()) {
+      return res.status(400).json({ imported: 0, error: "Stripe not configured" });
+    }
+
+    const s = getStripe();
+    let imported = 0;
+    let skipped = 0;
+    let hasMore = true;
+    let startingAfter: string | undefined;
+
+    try {
+      while (hasMore) {
+        const params: Stripe.Checkout.SessionListParams = {
+          limit: 100,
+          status: "complete",
+          expand: ["data.line_items"],
+        };
+        if (startingAfter) params.starting_after = startingAfter;
+
+        const sessions = await s.checkout.sessions.list(params);
+
+        for (const session of sessions.data) {
+          if (session.payment_status !== "paid") continue;
+
+          const existing = db.select().from(orders)
+            .where(eq(orders.stripeSessionId, session.id))
+            .get();
+
+          if (existing) {
+            skipped++;
+            continue;
+          }
+
+          const email = session.customer_details?.email || session.customer_email || "unknown";
+          const name = session.customer_details?.name || "Customer";
+          const total = (session.amount_total || 0) / 100;
+          const paymentIntent = typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id || null;
+
+          let lineItems: { name: string; price: number; quantity: number }[] = [];
+          try {
+            const li = (session as any).line_items;
+            if (li?.data) {
+              lineItems = li.data.map((item: any) => ({
+                name: item.description || item.price?.product?.name || "Item",
+                price: (item.amount_total || 0) / 100 / (item.quantity || 1),
+                quantity: item.quantity || 1,
+              }));
+            }
+          } catch {}
+
+          if (lineItems.length === 0) {
+            lineItems = [{ name: "Stripe Order", price: total, quantity: 1 }];
+          }
+
+          const { shippingAddress, customerPhone } = extractShippingFromSession(session);
+
+          const isService = lineItems.some(i =>
+            i.name.toLowerCase().includes("report") ||
+            i.name.toLowerCase().includes("numerology") ||
+            i.name.toLowerCase().includes("service")
+          );
+
+          const orderType = isService ? "service" : "physical";
+
+          const customerNotes = session.metadata?.customerNotes || null;
+
+          db.insert(orders).values({
+            customerEmail: email,
+            customerName: name,
+            items: JSON.stringify(lineItems),
+            total,
+            status: "paid",
+            orderType,
+            customerNotes,
+            shippingAddress: shippingAddress || null,
+            customerPhone: customerPhone || null,
+            paymentMethod: "stripe",
+            stripeSessionId: session.id,
+            stripePaymentIntentId: paymentIntent,
+          }).run();
+
+          imported++;
+        }
+
+        hasMore = sessions.has_more;
+        if (sessions.data.length > 0) {
+          startingAfter = sessions.data[sessions.data.length - 1].id;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      console.log(`[import] Stripe orders imported: ${imported}, skipped (already exist): ${skipped}`);
+      res.json({ imported, skipped, message: `Imported ${imported} orders from Stripe. ${skipped} already existed.` });
+    } catch (err: any) {
+      console.error("[import] Stripe import error:", err.message);
+      res.status(500).json({ imported, skipped, error: `Import partially failed: ${err.message}` });
+    }
+  });
 }

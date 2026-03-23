@@ -58,6 +58,7 @@ const TOOL_META: Record<string, { icon: typeof FileText; label: string; color: s
   update_order_status: { icon: PenLine, label: "Update Order", color: "text-amber-400" },
   generate_report: { icon: Sparkles, label: "Generate Report", color: "text-brand-400" },
   sync_orders: { icon: RefreshCcw, label: "Sync Orders", color: "text-cyan-400" },
+  import_stripe_orders: { icon: Package, label: "Import Stripe Orders", color: "text-green-400" },
   get_site_stats: { icon: BarChart3, label: "Site Stats", color: "text-cyan-400" },
 };
 

@@ -124,6 +124,7 @@ export default function Admin() {
 function DashboardTab({ adminFetch }: { adminFetch: any }) {
   const [stats, setStats] = useState<any>(null);
   const [syncing, setSyncing] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
 
   const load = () => adminFetch("/api/admin/stats").then(setStats);
@@ -144,7 +145,21 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
       setSyncResult("Sync failed");
     }
     setSyncing(false);
-    setTimeout(() => setSyncResult(null), 5000);
+    setTimeout(() => setSyncResult(null), 8000);
+  };
+
+  const importStripeOrders = async () => {
+    setImporting(true);
+    setSyncResult(null);
+    try {
+      const result = await adminFetch("/api/admin/import-stripe-orders", { method: "POST" });
+      setSyncResult(result.message || `Imported ${result.imported} orders`);
+      load();
+    } catch (e: any) {
+      setSyncResult("Import failed: " + (e.message || "Unknown error"));
+    }
+    setImporting(false);
+    setTimeout(() => setSyncResult(null), 10000);
   };
 
   if (!stats) return <Loading />;
@@ -178,11 +193,15 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-2">
-          {syncResult && <span className="text-xs text-green-400">{syncResult}</span>}
-          <button onClick={syncOrders} disabled={syncing}
+        <div className="flex items-center gap-2 flex-wrap">
+          {syncResult && <span className="text-xs text-green-400 max-w-[300px] truncate">{syncResult}</span>}
+          <button onClick={importStripeOrders} disabled={importing || syncing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-50">
+            {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} Import from Stripe
+          </button>
+          <button onClick={syncOrders} disabled={syncing || importing}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium glass hover:bg-brand-500/10 transition-colors disabled:opacity-50">
-            <RefreshCcw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Sync with Stripe
+            <RefreshCcw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Sync Pending
           </button>
         </div>
       </div>
