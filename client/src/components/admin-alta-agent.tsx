@@ -18,6 +18,8 @@ import {
   Trash2,
   PenLine,
   Plus,
+  Sparkles,
+  RefreshCcw,
 } from "lucide-react";
 import { useAdmin } from "../context/admin";
 
@@ -54,14 +56,18 @@ const TOOL_META: Record<string, { icon: typeof FileText; label: string; color: s
   add_thread_card: { icon: Plus, label: "Add Thread Card", color: "text-emerald-400" },
   list_orders: { icon: Package, label: "List Orders", color: "text-violet-400" },
   update_order_status: { icon: PenLine, label: "Update Order", color: "text-amber-400" },
+  generate_report: { icon: Sparkles, label: "Generate Report", color: "text-brand-400" },
+  sync_orders: { icon: RefreshCcw, label: "Sync Orders", color: "text-cyan-400" },
   get_site_stats: { icon: BarChart3, label: "Site Stats", color: "text-cyan-400" },
 };
 
 const QUICK_ACTIONS = [
   { icon: BarChart3, text: "Show me site stats" },
+  { icon: Package, text: "Show all orders" },
+  { icon: RefreshCcw, text: "Sync orders with Stripe" },
   { icon: FileText, text: "List all blog posts" },
   { icon: ShoppingBag, text: "List all products" },
-  { icon: Package, text: "Show recent orders" },
+  { icon: Sparkles, text: "Show orders needing reports" },
 ];
 
 function ActionCard({ action }: { action: ActionEvent }) {

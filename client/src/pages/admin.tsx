@@ -6,7 +6,8 @@ import {
   MessageCircle as ThreadIcon, Users, Package, MessageSquare,
   Plus, Trash2, Pencil, X, Save, LogOut, Lock, Eye, EyeOff,
   Loader2, ChevronDown, ChevronUp, MapPin, Phone, Truck, ClipboardList,
-  Sparkles, Download, FileCheck, RefreshCw, ExternalLink, Zap
+  Sparkles, Download, FileCheck, RefreshCw, ExternalLink, Zap,
+  DollarSign, AlertTriangle, CheckCircle, Clock, ArrowRight, TrendingUp, RefreshCcw
 } from "lucide-react";
 
 const AdminAltaAgent = lazy(() => import("@/components/admin-alta-agent"));
@@ -122,32 +123,155 @@ export default function Admin() {
 // ────────────────────────────────────────────
 function DashboardTab({ adminFetch }: { adminFetch: any }) {
   const [stats, setStats] = useState<any>(null);
-  useEffect(() => { adminFetch("/api/admin/stats").then(setStats); }, []);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  const load = () => adminFetch("/api/admin/stats").then(setStats);
+  useEffect(() => { load(); }, []);
+
+  const syncOrders = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const result = await adminFetch("/api/admin/sync-orders", { method: "POST" });
+      const parts = [];
+      if (result.synced > 0) parts.push(`${result.synced} paid`);
+      if (result.cancelled > 0) parts.push(`${result.cancelled} expired`);
+      if (result.cleaned > 0) parts.push(`${result.cleaned} cleaned`);
+      setSyncResult(parts.length > 0 ? `Synced: ${parts.join(", ")}` : "All orders up to date");
+      load();
+    } catch {
+      setSyncResult("Sync failed");
+    }
+    setSyncing(false);
+    setTimeout(() => setSyncResult(null), 5000);
+  };
 
   if (!stats) return <Loading />;
 
-  const cards = [
-    { label: "Blog Posts", value: stats.postCount, color: "text-violet-400" },
-    { label: "Products", value: stats.productCount, color: "text-amber-400" },
-    { label: "Gallery Items", value: stats.galleryCount, color: "text-emerald-400" },
-    { label: "Courses", value: stats.courseCount, color: "text-rose-400" },
-    { label: "Threads", value: stats.threadCount, color: "text-cyan-400" },
-    { label: "Subscribers", value: stats.subCount, color: "text-brand-400" },
-    { label: "Orders", value: stats.orderCount, color: "text-orange-400" },
-    { label: "Comments", value: stats.commentCount, color: "text-pink-400" },
-  ];
+  const alerts: { icon: typeof AlertTriangle; color: string; bg: string; text: string }[] = [];
+  if (stats.reportsToGenerate > 0) {
+    alerts.push({ icon: Sparkles, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20", text: `${stats.reportsToGenerate} report${stats.reportsToGenerate > 1 ? "s" : ""} waiting to be generated` });
+  }
+  if (stats.toShip > 0) {
+    alerts.push({ icon: Truck, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20", text: `${stats.toShip} order${stats.toShip > 1 ? "s" : ""} ready to ship` });
+  }
+  if (stats.needsAction > 0) {
+    alerts.push({ icon: AlertTriangle, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", text: `${stats.needsAction} paid order${stats.needsAction > 1 ? "s" : ""} need attention` });
+  }
+  if (stats.pendingOrders > 0) {
+    alerts.push({ icon: Clock, color: "text-gray-400", bg: "bg-gray-500/10 border-gray-500/20", text: `${stats.pendingOrders} pending checkout${stats.pendingOrders > 1 ? "s" : ""} (incomplete payment)` });
+  }
+
+  const statusColor = (s: string) => {
+    switch (s) {
+      case "paid": return "bg-green-500/20 text-green-400";
+      case "processing": return "bg-brand-500/20 text-brand-400";
+      case "shipped": return "bg-blue-500/20 text-blue-400";
+      case "delivered": case "completed": return "bg-emerald-500/20 text-emerald-400";
+      case "cancelled": return "bg-red-500/20 text-red-400";
+      default: return "bg-amber-500/20 text-amber-400";
+    }
+  };
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {cards.map(c => (
-          <div key={c.label} className="glass rounded-xl p-4">
-            <p className="text-xs text-gray-500 mb-1">{c.label}</p>
-            <p className={`font-display text-3xl font-bold ${c.color}`}>{c.value}</p>
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-bold">Dashboard</h1>
+        <div className="flex items-center gap-2">
+          {syncResult && <span className="text-xs text-green-400">{syncResult}</span>}
+          <button onClick={syncOrders} disabled={syncing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium glass hover:bg-brand-500/10 transition-colors disabled:opacity-50">
+            <RefreshCcw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Sync with Stripe
+          </button>
+        </div>
       </div>
+
+      {/* Revenue & Orders Hero */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="glass rounded-xl p-5 md:col-span-1">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="w-5 h-5 text-green-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Total Revenue</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-green-400">${(stats.totalRevenue || 0).toFixed(2)}</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.completedOrders || 0} completed orders</p>
+        </div>
+        <div className="glass rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Package className="w-5 h-5 text-brand-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Total Orders</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-brand-400">{stats.orderCount}</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.needsAction || 0} need action</p>
+        </div>
+        <div className="glass rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="w-5 h-5 text-violet-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Subscribers</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-violet-400">{stats.subCount}</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.commentCount} comments</p>
+        </div>
+      </div>
+
+      {/* Action Alerts */}
+      {alerts.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Action Needed</p>
+          {alerts.map((a, i) => (
+            <div key={i} className={`flex items-center gap-3 rounded-xl p-3 border ${a.bg}`}>
+              <a.icon className={`w-4 h-4 shrink-0 ${a.color}`} />
+              <span className="text-sm flex-1">{a.text}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-500" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Content Stats Grid */}
+      <div>
+        <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">Content</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { label: "Blog Posts", value: stats.postCount, color: "text-violet-400" },
+            { label: "Products", value: stats.productCount, color: "text-amber-400" },
+            { label: "Gallery", value: stats.galleryCount, color: "text-emerald-400" },
+            { label: "Courses", value: stats.courseCount, color: "text-rose-400" },
+            { label: "Threads", value: stats.threadCount, color: "text-cyan-400" },
+            { label: "Comments", value: stats.commentCount, color: "text-pink-400" },
+          ].map(c => (
+            <div key={c.label} className="glass rounded-xl p-3 text-center">
+              <p className={`font-display text-2xl font-bold ${c.color}`}>{c.value}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">{c.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Orders */}
+      {stats.recentOrders && stats.recentOrders.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">Recent Orders</p>
+          <div className="space-y-1.5">
+            {stats.recentOrders.map((o: any) => (
+              <div key={o.id} className="glass rounded-lg p-3 flex items-center gap-3">
+                <Package className={`w-4 h-4 shrink-0 ${o.orderType === "service" ? "text-violet-400" : "text-amber-400"}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">#{o.id}</span>
+                    <span className="text-xs text-gray-500 truncate">{o.customerName !== "Pending Checkout" ? o.customerName : "Checkout in progress"}</span>
+                  </div>
+                </div>
+                <span className="text-sm font-medium">${o.total.toFixed(2)}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${statusColor(o.status)}`}>{o.status}</span>
+                {o.orderType === "service" && o.hasReport && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" title="Report generated" />}
+                {o.orderType === "service" && !o.hasReport && o.status !== "pending" && o.status !== "cancelled" && <Clock className="w-3.5 h-3.5 text-violet-400" title="Report pending" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

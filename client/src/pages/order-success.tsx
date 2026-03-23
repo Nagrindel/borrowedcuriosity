@@ -126,7 +126,7 @@ export default function OrderSuccess() {
           <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
             {isPaid
               ? order.orderType === "service" || order.orderType === "mixed"
-                ? "Thank you for your order! Nicole will personally craft your report and deliver it to your email within 3-5 business days."
+                ? "Thank you for your order! Your personalized report will be crafted and delivered to your email within 3-5 business days."
                 : "Thank you for your purchase! Your order has been received and we're getting it ready."
               : "Your payment is being processed. You'll receive a confirmation email shortly."}
           </p>

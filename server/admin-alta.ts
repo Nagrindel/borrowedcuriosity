@@ -182,7 +182,7 @@ ${reportContent}
 </html>`;
 
       db.update(orders)
-        .set({ generatedReport: fullReport, status: order.status === "paid" ? "processing" : order.status })
+        .set({ generatedReport: fullReport, status: "completed" })
         .where(eq(orders.id, orderId))
         .run();
 
@@ -227,17 +227,17 @@ ${reportContent}
 
   app.post("/api/admin/test-order", adminAuth, (_req: Request, res: Response) => {
     const testNotes = JSON.stringify([{
-      productName: "Hand-Written Numerology Report",
-      fullName: "Nicole Grindel",
+      productName: "Numerology Report",
+      fullName: "Test Client",
       birthDate: "1990-07-15",
-      email: "nicole@borrowedcuriosity.com",
+      email: "test@borrowedcuriosity.com",
       specialRequests: "I would love insights into my creative potential and what areas of study might spark my curiosity."
     }]);
 
     db.insert(orders).values({
-      customerName: "Nicole Grindel",
-      customerEmail: "nicole@borrowedcuriosity.com",
-      items: JSON.stringify([{ name: "Hand-Written Numerology Report", price: 55, quantity: 1 }]),
+      customerName: "Test Client",
+      customerEmail: "test@borrowedcuriosity.com",
+      items: JSON.stringify([{ name: "Numerology Report", price: 55, quantity: 1 }]),
       total: 55,
       status: "paid",
       orderType: "service",

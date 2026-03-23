@@ -157,9 +157,42 @@ export function registerRoutes(app: Express) {
     const courseCount = db.select().from(courses).all().length;
     const threadCount = db.select().from(threads).all().length;
     const subCount = db.select().from(subscribers).all().length;
-    const orderCount = db.select().from(orders).all().length;
     const commentCount = db.select().from(comments).all().length;
-    res.json({ postCount, productCount, galleryCount, courseCount, threadCount, subCount, orderCount, commentCount });
+
+    const allOrders = db.select().from(orders).all();
+    const orderCount = allOrders.length;
+    const paidStatuses = ["paid", "processing", "shipped", "delivered", "completed"];
+    const paidOrders = allOrders.filter(o => paidStatuses.includes(o.status));
+    const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total, 0);
+    const pendingOrders = allOrders.filter(o => o.status === "pending").length;
+    const needsAction = allOrders.filter(o => o.status === "paid").length;
+    const reportsToGenerate = allOrders.filter(o =>
+      (o.orderType === "service" || o.orderType === "mixed") &&
+      (o.status === "paid" || o.status === "processing") &&
+      !o.generatedReport
+    ).length;
+    const toShip = allOrders.filter(o =>
+      (o.orderType === "physical" || o.orderType === "mixed") &&
+      (o.status === "paid" || o.status === "processing")
+    ).length;
+    const completedOrders = allOrders.filter(o => o.status === "completed" || o.status === "delivered").length;
+    const recentOrders = allOrders
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 5)
+      .map(o => ({
+        id: o.id,
+        customerName: o.customerName,
+        total: o.total,
+        status: o.status,
+        orderType: o.orderType,
+        createdAt: o.createdAt,
+        hasReport: !!o.generatedReport,
+      }));
+
+    res.json({
+      postCount, productCount, galleryCount, courseCount, threadCount, subCount, orderCount, commentCount,
+      totalRevenue, pendingOrders, needsAction, reportsToGenerate, toShip, completedOrders, recentOrders,
+    });
   });
 
   // ─── Admin Blog CRUD ───

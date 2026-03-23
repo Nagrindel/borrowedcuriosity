@@ -4,8 +4,9 @@ import { db } from "./db.js";
 import { eq, desc, sql } from "drizzle-orm";
 import {
   blogPosts, products, galleryItems, courses, lessons,
-  threads, threadCards, orders, comments,
+  threads, threadCards, orders, comments, subscribers,
 } from "../shared/schema.js";
+import { calculateServerProfile, profileToPromptContext } from "./numerology.js";
 
 let groq: Groq | null = null;
 function getGroq(): Groq | null {
@@ -17,7 +18,7 @@ function getGroq(): Groq | null {
 }
 
 const AGENT_SYSTEM = `You are Alta Agent, the intelligent content manager for Borrowed Curiosity LLC.
-You help the site administrator (Nicole) manage the website through natural conversation.
+You help the site administrator manage the website through natural conversation.
 
 You can:
 - Create, edit, and delete blog posts
@@ -25,8 +26,20 @@ You can:
 - Create, edit, and delete gallery items
 - Create courses and add lessons
 - Create threads with flip cards
-- View orders and site statistics
+- View and manage orders with full intelligence
+- Generate numerology reports for service orders
+- Sync pending orders with Stripe to recover missing payments
+- View site statistics and revenue tracking
 - List and search existing content
+
+ORDER INTELLIGENCE:
+- Orders flow through these statuses: pending -> paid -> processing -> shipped/completed -> delivered
+- "pending" means checkout started but payment not confirmed. Use sync_orders to check Stripe.
+- "paid" means money received. Service orders need reports generated. Physical orders need shipping.
+- "completed" means service order fulfilled (report generated and ready). Physical orders move to "shipped" then "delivered".
+- When asked about orders, always include status, type, total, and whether a report has been generated.
+- If orders seem missing, suggest using sync_orders to recover from Stripe.
+- When generating a report, it auto-sets the order status to "completed".
 
 PERSONALITY:
 - You are the same Alta personality: witty, warm, helpful, direct.
@@ -286,11 +299,12 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "list_orders",
-      description: "List recent orders with IDs, customer info, totals, and statuses.",
+      description: "List orders with full details: IDs, customer info, totals, statuses, order type, whether report was generated, and customer notes. Use filter to show specific order states.",
       parameters: {
         type: "object",
         properties: {
           limit: { type: "number", description: "Number of orders to return (default 20)" },
+          filter: { type: "string", description: "Filter: 'all' (default), 'paid', 'pending', 'needs-report', 'to-ship', 'completed', 'cancelled'" },
         },
         required: [],
       },
@@ -300,12 +314,12 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "update_order_status",
-      description: "Update an order's status (e.g. paid, processing, shipped, completed).",
+      description: "Update an order's status. Valid statuses: pending, paid, processing, shipped, delivered, completed, cancelled.",
       parameters: {
         type: "object",
         properties: {
           id: { type: "number" },
-          status: { type: "string", description: "New status: paid, processing, shipped, completed, cancelled" },
+          status: { type: "string", description: "New status: pending, paid, processing, shipped, delivered, completed, cancelled" },
         },
         required: ["id", "status"],
       },
@@ -314,8 +328,30 @@ const TOOLS: Groq.Chat.Completions.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
+      name: "generate_report",
+      description: "Generate a numerology report for a service order using Alta. Requires the order to have customer details (name and birth date). Auto-sets order status to completed.",
+      parameters: {
+        type: "object",
+        properties: {
+          orderId: { type: "number", description: "The order ID to generate a report for" },
+        },
+        required: ["orderId"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "sync_orders",
+      description: "Sync all pending orders with Stripe to recover payments that were completed but not captured by webhooks. Also cleans up abandoned checkouts older than 2 hours.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "get_site_stats",
-      description: "Get site-wide statistics: counts of posts, products, orders, subscribers, etc.",
+      description: "Get site-wide statistics: counts of posts, products, orders, subscribers, revenue, pending actions, reports to generate, orders to ship.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
@@ -337,7 +373,7 @@ function generateImageUrl(prompt: string, width = 1200, height = 630): string {
   return `https://placeholdr.dev/${width}x${height}/${encodeURIComponent(cleaned)}?style=photographic`;
 }
 
-function executeTool(name: string, args: Record<string, any>): ToolResult {
+async function executeTool(name: string, args: Record<string, any>): Promise<ToolResult> {
   try {
     switch (name) {
       case "create_blog_post": {
@@ -517,35 +553,132 @@ function executeTool(name: string, args: Record<string, any>): ToolResult {
 
       case "list_orders": {
         const limit = args.limit || 20;
-        const rows = db.select({
-          id: orders.id,
-          customerEmail: orders.customerEmail,
-          customerName: orders.customerName,
-          total: orders.total,
-          status: orders.status,
-          orderType: orders.orderType,
-          createdAt: orders.createdAt,
-        }).from(orders).orderBy(desc(orders.createdAt)).limit(limit).all();
-        return { success: true, data: { count: rows.length, orders: rows } };
+        const filter = args.filter || "all";
+        let allRows = db.select().from(orders).orderBy(desc(orders.createdAt)).all();
+
+        if (filter === "paid") allRows = allRows.filter(o => o.status === "paid");
+        else if (filter === "pending") allRows = allRows.filter(o => o.status === "pending");
+        else if (filter === "needs-report") allRows = allRows.filter(o => (o.orderType === "service" || o.orderType === "mixed") && !o.generatedReport && o.status !== "cancelled" && o.status !== "pending");
+        else if (filter === "to-ship") allRows = allRows.filter(o => (o.orderType === "physical" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing"));
+        else if (filter === "completed") allRows = allRows.filter(o => o.status === "completed" || o.status === "delivered");
+        else if (filter === "cancelled") allRows = allRows.filter(o => o.status === "cancelled");
+
+        const rows = allRows.slice(0, limit).map(o => {
+          let customerDetails = null;
+          try { customerDetails = o.customerNotes ? JSON.parse(o.customerNotes) : null; } catch {}
+          return {
+            id: o.id,
+            customerEmail: o.customerEmail,
+            customerName: o.customerName,
+            total: o.total,
+            status: o.status,
+            orderType: o.orderType,
+            hasReport: !!o.generatedReport,
+            hasShipping: !!o.shippingAddress,
+            customerDetails: customerDetails?.[0] || null,
+            createdAt: o.createdAt,
+          };
+        });
+        return { success: true, data: { count: rows.length, totalInDB: allRows.length, filter, orders: rows } };
       }
 
       case "update_order_status": {
         const existing = db.select().from(orders).where(eq(orders.id, args.id)).get();
         if (!existing) return { success: false, error: `Order #${args.id} not found` };
         db.update(orders).set({ status: args.status }).where(eq(orders.id, args.id)).run();
-        return { success: true, data: { id: args.id, oldStatus: existing.status, newStatus: args.status, message: `Order #${args.id} updated to "${args.status}"` } };
+        return { success: true, data: { id: args.id, oldStatus: existing.status, newStatus: args.status, message: `Order #${args.id} status changed from "${existing.status}" to "${args.status}"` } };
+      }
+
+      case "generate_report": {
+        const order = db.select().from(orders).where(eq(orders.id, args.orderId)).get();
+        if (!order) return { success: false, error: `Order #${args.orderId} not found` };
+        if (order.orderType !== "service" && order.orderType !== "mixed") return { success: false, error: `Order #${args.orderId} is not a service order` };
+
+        let notes: any[] = [];
+        try { notes = JSON.parse(order.customerNotes || "[]"); } catch {}
+        if (!notes.length) return { success: false, error: `Order #${args.orderId} has no customer details` };
+
+        const { fullName, birthDate, specialRequests } = notes[0];
+        if (!fullName || !birthDate) return { success: false, error: "Customer name or birth date missing on this order" };
+
+        const client = getGroq();
+        if (!client) return { success: false, error: "Groq API not configured" };
+
+        const profile = calculateServerProfile(fullName, birthDate);
+        const profileContext = profileToPromptContext(profile, fullName, birthDate);
+
+        const reportPrompt = `Generate a complete, professional numerology report for this client.\n\n${profileContext}\n\n${specialRequests ? `CLIENT'S SPECIAL REQUEST: "${specialRequests}"` : ""}\n\nWrite the full report now. Make it personal, insightful, and worth every penny.`;
+
+        try {
+          const completion = await client.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+              { role: "system", content: "You are Alta, an expert numerologist writing personalized reports. Use HTML formatting (h2 for sections, p for paragraphs). Be warm, insightful, and specific. No em dashes. No emojis." },
+              { role: "user", content: reportPrompt },
+            ],
+            temperature: 0.85,
+            max_tokens: 4096,
+          });
+
+          const reportContent = completion.choices[0]?.message?.content || "";
+          if (!reportContent.trim()) return { success: false, error: "Generated empty report, try again" };
+
+          const [yr, mo, dy] = birthDate.split("-").map(Number);
+          const displayDate = new Date(yr, mo - 1, dy).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+          const fullReport = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Numerology Report - ${fullName}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Georgia',serif;background:#fafafa;color:#1a1a1a;line-height:1.8;padding:40px 20px}.wrapper{max-width:720px;margin:0 auto}.header{text-align:center;padding:40px 0 32px;border-bottom:2px solid #6366f1}.header h1{font-size:2em;color:#6366f1}.header .subtitle{color:#666}.report h2{font-size:1.3em;color:#4f46e5;margin:32px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}.report p{margin-bottom:14px;color:#333}.footer{text-align:center;padding:40px 0 20px;border-top:2px solid #6366f1;margin-top:40px;color:#999;font-size:0.85em}</style></head><body><div class="wrapper"><div class="header"><h1>Numerology Report</h1><p class="subtitle">${fullName}</p><p style="color:#999;font-size:0.85em">Born ${displayDate} | Pythagorean System</p></div><div class="report">${reportContent}</div><div class="footer"><p>Prepared for ${fullName}</p><p>Borrowed Curiosity LLC</p></div></div></body></html>`;
+
+          db.update(orders).set({ generatedReport: fullReport, status: "completed" }).where(eq(orders.id, args.orderId)).run();
+
+          return { success: true, data: { orderId: args.orderId, clientName: fullName, lifePath: profile.lifePath, message: `Report generated for ${fullName} (Life Path ${profile.lifePath}). Order #${args.orderId} marked as completed. The report is now available in the Orders tab for preview, editing, and download.` } };
+        } catch (err: any) {
+          return { success: false, error: `Report generation failed: ${err.message}` };
+        }
+      }
+
+      case "sync_orders": {
+        try {
+          const res = await fetch(`http://localhost:${process.env.PORT || 5000}/api/admin/sync-orders`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await res.json();
+          return {
+            success: true,
+            data: {
+              synced: data.synced || 0,
+              cancelled: data.cancelled || 0,
+              cleaned: data.cleaned || 0,
+              message: `Stripe sync complete. ${data.synced || 0} orders recovered as paid, ${data.cancelled || 0} expired sessions cancelled, ${data.cleaned || 0} stale checkouts cleaned up.`,
+            },
+          };
+        } catch (err: any) {
+          return { success: false, error: `Sync failed: ${err.message}` };
+        }
       }
 
       case "get_site_stats": {
         const postCount = db.select({ c: sql<number>`count(*)` }).from(blogPosts).get()?.c ?? 0;
         const productCount = db.select({ c: sql<number>`count(*)` }).from(products).get()?.c ?? 0;
-        const orderCount = db.select({ c: sql<number>`count(*)` }).from(orders).get()?.c ?? 0;
         const galleryCount = db.select({ c: sql<number>`count(*)` }).from(galleryItems).get()?.c ?? 0;
         const courseCount = db.select({ c: sql<number>`count(*)` }).from(courses).get()?.c ?? 0;
         const threadCount = db.select({ c: sql<number>`count(*)` }).from(threads).get()?.c ?? 0;
+        const subCount = db.select({ c: sql<number>`count(*)` }).from(subscribers).get()?.c ?? 0;
+        const allOrders = db.select().from(orders).all();
+        const orderCount = allOrders.length;
+        const paidStatuses = ["paid", "processing", "shipped", "delivered", "completed"];
+        const totalRevenue = allOrders.filter(o => paidStatuses.includes(o.status)).reduce((s, o) => s + o.total, 0);
+        const pendingOrders = allOrders.filter(o => o.status === "pending").length;
+        const needsAction = allOrders.filter(o => o.status === "paid").length;
+        const reportsToGenerate = allOrders.filter(o => (o.orderType === "service" || o.orderType === "mixed") && !o.generatedReport && o.status !== "cancelled" && o.status !== "pending").length;
+        const toShip = allOrders.filter(o => (o.orderType === "physical" || o.orderType === "mixed") && (o.status === "paid" || o.status === "processing")).length;
+        const completedOrders = allOrders.filter(o => o.status === "completed" || o.status === "delivered").length;
         return {
           success: true,
-          data: { blogPosts: postCount, products: productCount, orders: orderCount, gallery: galleryCount, courses: courseCount, threads: threadCount },
+          data: {
+            blogPosts: postCount, products: productCount, gallery: galleryCount, courses: courseCount,
+            threads: threadCount, subscribers: subCount, orders: orderCount, totalRevenue: `$${totalRevenue.toFixed(2)}`,
+            pendingCheckouts: pendingOrders, needsAction, reportsToGenerate, toShip, completedOrders,
+          },
         };
       }
 
@@ -628,7 +761,7 @@ export function registerAltaAgentRoutes(app: Express) {
 
             console.log(`[alta-agent] Tool call: ${fnName}(${JSON.stringify(fnArgs)})`);
 
-            const result = executeTool(fnName, fnArgs);
+            const result = await executeTool(fnName, fnArgs);
 
             res.write(`data: ${JSON.stringify({
               type: "action",
