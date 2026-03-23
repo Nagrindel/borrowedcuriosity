@@ -73,7 +73,8 @@ const QUICK_ACTIONS = [
 function ActionCard({ action }: { action: ActionEvent }) {
   const meta = TOOL_META[action.tool] || { icon: Terminal, label: action.tool, color: "text-gray-400" };
   const Icon = meta.icon;
-  const isSuccess = action.result.success;
+  const isSuccess = action.result?.success;
+  const args = action.args && typeof action.args === "object" ? action.args : {};
 
   return (
     <div className={`rounded-lg border p-3 text-sm ${isSuccess ? "border-emerald-500/20 bg-emerald-500/5" : "border-red-500/20 bg-red-500/5"}`}>
@@ -87,22 +88,28 @@ function ActionCard({ action }: { action: ActionEvent }) {
         )}
       </div>
 
-      {Object.keys(action.args).length > 0 && (
+      {Object.keys(args).length > 0 && (
         <div className="mb-2">
-          {action.args.title && (
-            <span className="text-gray-300 text-xs">"{action.args.title}"</span>
+          {args.title && (
+            <span className="text-gray-300 text-xs">"{args.title}"</span>
           )}
-          {action.args.name && !action.args.title && (
-            <span className="text-gray-300 text-xs">"{action.args.name}"</span>
+          {args.name && !args.title && (
+            <span className="text-gray-300 text-xs">"{args.name}"</span>
           )}
-          {action.args.topic && !action.args.title && (
-            <span className="text-gray-300 text-xs">"{action.args.topic}"</span>
+          {args.topic && !args.title && (
+            <span className="text-gray-300 text-xs">"{args.topic}"</span>
           )}
-          {action.args.price !== undefined && (
-            <span className="text-gray-400 text-xs ml-2">${action.args.price}</span>
+          {args.orderId && !args.title && !args.name && (
+            <span className="text-gray-300 text-xs">Order #{args.orderId}</span>
           )}
-          {action.args.id !== undefined && !action.args.title && !action.args.name && (
-            <span className="text-gray-400 text-xs">ID: {action.args.id}</span>
+          {args.price !== undefined && (
+            <span className="text-gray-400 text-xs ml-2">${args.price}</span>
+          )}
+          {args.filter && (
+            <span className="text-gray-400 text-xs ml-2">filter: {args.filter}</span>
+          )}
+          {args.id !== undefined && !args.title && !args.name && !args.orderId && (
+            <span className="text-gray-400 text-xs">ID: {args.id}</span>
           )}
         </div>
       )}
@@ -110,7 +117,7 @@ function ActionCard({ action }: { action: ActionEvent }) {
       {isSuccess && action.result.data?.message && (
         <p className="text-xs text-emerald-300/80">{action.result.data.message}</p>
       )}
-      {!isSuccess && action.result.error && (
+      {!isSuccess && action.result?.error && (
         <p className="text-xs text-red-300/80">{action.result.error}</p>
       )}
 
@@ -121,73 +128,99 @@ function ActionCard({ action }: { action: ActionEvent }) {
   );
 }
 
+function safeStr(val: unknown): string {
+  if (val == null) return "";
+  if (typeof val === "boolean") return val ? "Yes" : "No";
+  if (typeof val === "object") return JSON.stringify(val);
+  return String(val);
+}
+
 function DataTable({ data }: { data: any }) {
-  if (!data || typeof data !== "object") return null;
+  try {
+    if (!data || typeof data !== "object") return null;
 
-  const isStatsObject =
-    typeof data.blogPosts === "number" ||
-    typeof data.products === "number" ||
-    typeof data.orders === "number";
+    const isStatsLike = !Array.isArray(data) &&
+      Object.values(data).some((v: any) => typeof v === "number" || typeof v === "string") &&
+      !data.posts && !data.products && !data.orders && !data.items && !data.courses;
 
-  if (isStatsObject) {
-    const entries = Object.entries(data).filter(([, v]) => typeof v === "number" || typeof v === "string");
-    if (entries.length === 0) return null;
+    if (isStatsLike) {
+      const safe = data && typeof data === "object" ? data : {};
+      const entries = Object.entries(safe).filter(
+        ([k, v]) => (typeof v === "number" || typeof v === "string") && k !== "count" && k !== "totalInDB" && k !== "filter",
+      );
+      if (entries.length === 0) return null;
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+          {entries.map(([key, val]) => (
+            <div key={key} className="rounded-lg bg-white/5 border border-white/10 p-2.5 text-center">
+              <div className="text-lg font-display text-white">{safeStr(val)}</div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider">{key.replace(/([A-Z])/g, " $1").trim()}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    const items = data.posts || data.products || data.orders || data.items || data.courses;
+    if (!Array.isArray(items) || items.length === 0) return null;
+
+    const validItems = items.filter((it: any) => it != null && typeof it === "object");
+    if (validItems.length === 0) return null;
+
+    const HIDDEN = new Set([
+      "content", "gradient", "description", "excerpt", "mediaUrl", "downloadUrl",
+      "imageUrl", "shippingAddress", "customerNotes", "generatedReport", "customerPhone",
+      "customerDetails", "stripeSessionId", "stripePaymentIntentId", "paymentMethod",
+    ]);
+
+    const firstItem = validItems[0];
+    let cols: string[];
+    try {
+      cols = Object.keys(firstItem).filter(k => !HIDDEN.has(k));
+    } catch {
+      return null;
+    }
+    if (cols.length === 0) return null;
+
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-        {entries.map(([key, val]) => (
-          <div key={key} className="rounded-lg bg-white/5 border border-white/10 p-2.5 text-center">
-            <div className="text-lg font-display text-white">{String(val)}</div>
-            <div className="text-[10px] text-gray-500 uppercase tracking-wider">{key}</div>
+      <div className="mt-2 overflow-x-auto rounded-lg border border-white/10">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-white/5 border-b border-white/10">
+              {cols.map(c => (
+                <th key={c} className="px-3 py-2 text-left text-gray-400 font-medium uppercase tracking-wider">
+                  {c.replace(/([A-Z])/g, " $1").trim()}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {validItems.slice(0, 25).map((item: any, i: number) => (
+              <tr key={i} className="border-b border-white/5 hover:bg-white/5">
+                {cols.map(c => {
+                  const val = item?.[c];
+                  return (
+                    <td key={c} className="px-3 py-2 text-gray-300 max-w-[200px] truncate">
+                      {safeStr(val)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {validItems.length > 25 && (
+          <div className="px-3 py-2 text-xs text-gray-500 text-center bg-white/5">
+            Showing 25 of {validItems.length}
           </div>
-        ))}
+        )}
       </div>
     );
+  } catch {
+    return (
+      <div className="mt-2 text-xs text-gray-500 italic p-2">Data returned but could not be displayed as a table.</div>
+    );
   }
-
-  const items = data.posts || data.products || data.orders || data.items || data.courses;
-  if (!Array.isArray(items) || items.length === 0) return null;
-
-  const firstItem = items.find((it: any) => it != null && typeof it === "object");
-  if (!firstItem) return null;
-
-  const HIDDEN = new Set(["content", "gradient", "description", "excerpt", "mediaUrl", "downloadUrl", "imageUrl", "shippingAddress", "customerNotes", "generatedReport", "customerPhone"]);
-  const cols = Object.keys(firstItem).filter(k => !HIDDEN.has(k));
-  if (cols.length === 0) return null;
-
-  return (
-    <div className="mt-2 overflow-x-auto rounded-lg border border-white/10">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="bg-white/5 border-b border-white/10">
-            {cols.map(c => (
-              <th key={c} className="px-3 py-2 text-left text-gray-400 font-medium uppercase tracking-wider">
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {items.slice(0, 25).map((item: any, i: number) => {
-            if (!item || typeof item !== "object") return null;
-            return (
-              <tr key={i} className="border-b border-white/5 hover:bg-white/5">
-                {cols.map(c => (
-                  <td key={c} className="px-3 py-2 text-gray-300 max-w-[200px] truncate">
-                    {typeof item[c] === "boolean" ? (item[c] ? "Yes" : "No") : String(item[c] ?? "")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      {items.length > 25 && (
-        <div className="px-3 py-2 text-xs text-gray-500 text-center bg-white/5">
-          Showing 25 of {items.length}
-        </div>
-      )}
-    </div>
-  );
 }
 
 const GREETING: ChatMessage = {
