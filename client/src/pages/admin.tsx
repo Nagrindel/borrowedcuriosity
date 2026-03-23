@@ -103,7 +103,7 @@ export default function Admin() {
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto p-6">
-        {activeTab === "dashboard" && <DashboardTab adminFetch={adminFetch} />}
+        {activeTab === "dashboard" && <DashboardTab adminFetch={adminFetch} onNavigate={setActiveTab} />}
         {activeTab === "alta-agent" && <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin text-violet-400" /></div>}><AdminAltaAgent /></Suspense>}
         {activeTab === "blog" && <BlogTab adminFetch={adminFetch} />}
         {activeTab === "products" && <ProductsTab adminFetch={adminFetch} />}
@@ -121,7 +121,7 @@ export default function Admin() {
 // ────────────────────────────────────────────
 // Dashboard Tab
 // ────────────────────────────────────────────
-function DashboardTab({ adminFetch }: { adminFetch: any }) {
+function DashboardTab({ adminFetch, onNavigate }: { adminFetch: any; onNavigate: (tab: Tab) => void }) {
   const [stats, setStats] = useState<any>(null);
   const [syncing, setSyncing] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -164,18 +164,18 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
 
   if (!stats) return <Loading />;
 
-  const alerts: { icon: typeof AlertTriangle; color: string; bg: string; text: string }[] = [];
+  const alerts: { icon: typeof AlertTriangle; color: string; bg: string; text: string; action: () => void }[] = [];
   if (stats.reportsToGenerate > 0) {
-    alerts.push({ icon: Sparkles, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20", text: `${stats.reportsToGenerate} report${stats.reportsToGenerate > 1 ? "s" : ""} waiting to be generated` });
+    alerts.push({ icon: Sparkles, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20", text: `${stats.reportsToGenerate} report${stats.reportsToGenerate > 1 ? "s" : ""} waiting to be generated`, action: () => onNavigate("orders") });
   }
   if (stats.toShip > 0) {
-    alerts.push({ icon: Truck, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20", text: `${stats.toShip} order${stats.toShip > 1 ? "s" : ""} ready to ship` });
+    alerts.push({ icon: Truck, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20", text: `${stats.toShip} order${stats.toShip > 1 ? "s" : ""} ready to ship`, action: () => onNavigate("orders") });
   }
   if (stats.needsAction > 0) {
-    alerts.push({ icon: AlertTriangle, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", text: `${stats.needsAction} paid order${stats.needsAction > 1 ? "s" : ""} need attention` });
+    alerts.push({ icon: AlertTriangle, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", text: `${stats.needsAction} paid order${stats.needsAction > 1 ? "s" : ""} need attention`, action: () => onNavigate("orders") });
   }
   if (stats.pendingOrders > 0) {
-    alerts.push({ icon: Clock, color: "text-gray-400", bg: "bg-gray-500/10 border-gray-500/20", text: `${stats.pendingOrders} pending checkout${stats.pendingOrders > 1 ? "s" : ""} (incomplete payment)` });
+    alerts.push({ icon: Clock, color: "text-gray-400", bg: "bg-gray-500/10 border-gray-500/20", text: `${stats.pendingOrders} pending checkout${stats.pendingOrders > 1 ? "s" : ""} (incomplete payment)`, action: () => onNavigate("orders") });
   }
 
   const statusColor = (s: string) => {
@@ -216,14 +216,14 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
           <p className="font-display text-3xl font-bold text-green-400">${(stats.totalRevenue || 0).toFixed(2)}</p>
           <p className="text-xs text-gray-500 mt-1">{stats.completedOrders || 0} completed orders</p>
         </div>
-        <div className="glass rounded-xl p-5">
+        <button onClick={() => onNavigate("orders")} className="glass rounded-xl p-5 text-left hover:ring-1 hover:ring-brand-500/30 transition-all cursor-pointer">
           <div className="flex items-center gap-2 mb-2">
             <Package className="w-5 h-5 text-brand-400" />
             <p className="text-xs text-gray-500 uppercase tracking-wider">Total Orders</p>
           </div>
           <p className="font-display text-3xl font-bold text-brand-400">{stats.orderCount}</p>
           <p className="text-xs text-gray-500 mt-1">{stats.needsAction || 0} need action</p>
-        </div>
+        </button>
         <div className="glass rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-violet-400" />
@@ -239,11 +239,12 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
         <div className="space-y-2">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Action Needed</p>
           {alerts.map((a, i) => (
-            <div key={i} className={`flex items-center gap-3 rounded-xl p-3 border ${a.bg}`}>
+            <button key={i} onClick={a.action}
+              className={`w-full flex items-center gap-3 rounded-xl p-3 border ${a.bg} hover:opacity-80 transition-opacity cursor-pointer text-left`}>
               <a.icon className={`w-4 h-4 shrink-0 ${a.color}`} />
               <span className="text-sm flex-1">{a.text}</span>
               <ArrowRight className="w-3.5 h-3.5 text-gray-500" />
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -271,10 +272,15 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
       {/* Recent Orders */}
       {stats.recentOrders && stats.recentOrders.length > 0 && (
         <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">Recent Orders</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Recent Orders</p>
+            <button onClick={() => onNavigate("orders")} className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1">
+              View all <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
           <div className="space-y-1.5">
             {stats.recentOrders.map((o: any) => (
-              <div key={o.id} className="glass rounded-lg p-3 flex items-center gap-3">
+              <button key={o.id} onClick={() => onNavigate("orders")} className="w-full glass rounded-lg p-3 flex items-center gap-3 hover:bg-white/5 transition-colors cursor-pointer text-left">
                 <Package className={`w-4 h-4 shrink-0 ${o.orderType === "service" ? "text-violet-400" : "text-amber-400"}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -286,7 +292,7 @@ function DashboardTab({ adminFetch }: { adminFetch: any }) {
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${statusColor(o.status)}`}>{o.status}</span>
                 {o.orderType === "service" && o.hasReport && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" title="Report generated" />}
                 {o.orderType === "service" && !o.hasReport && o.status !== "pending" && o.status !== "cancelled" && <Clock className="w-3.5 h-3.5 text-violet-400" title="Report pending" />}
-              </div>
+              </button>
             ))}
           </div>
         </div>
