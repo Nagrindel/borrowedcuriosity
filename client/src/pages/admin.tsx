@@ -7,15 +7,17 @@ import {
   Plus, Trash2, Pencil, X, Save, LogOut, Lock, Eye, EyeOff,
   Loader2, ChevronDown, ChevronUp, MapPin, Phone, Truck, ClipboardList,
   Sparkles, Download, FileCheck, RefreshCw, ExternalLink, Zap,
-  DollarSign, AlertTriangle, CheckCircle, Clock, ArrowRight, TrendingUp, RefreshCcw
+  DollarSign, AlertTriangle, CheckCircle, Clock, ArrowRight, TrendingUp, RefreshCcw,
+  BarChart3, Globe
 } from "lucide-react";
 
 const AdminAltaAgent = lazy(() => import("@/components/admin-alta-agent"));
 
-type Tab = "dashboard" | "blog" | "products" | "gallery" | "courses" | "threads" | "subscribers" | "orders" | "comments" | "alta-agent";
+type Tab = "dashboard" | "visitors" | "blog" | "products" | "gallery" | "courses" | "threads" | "subscribers" | "orders" | "comments" | "alta-agent";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "visitors", label: "Visitors", icon: BarChart3 },
   { id: "alta-agent", label: "Alta Agent", icon: Zap },
   { id: "blog", label: "Blog Posts", icon: FileText },
   { id: "products", label: "Products", icon: ShoppingBag },
@@ -104,6 +106,7 @@ export default function Admin() {
       {/* Content */}
       <main className="flex-1 overflow-y-auto p-6">
         {activeTab === "dashboard" && <DashboardTab adminFetch={adminFetch} onNavigate={setActiveTab} />}
+        {activeTab === "visitors" && <VisitorsTab adminFetch={adminFetch} />}
         {activeTab === "alta-agent" && <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin text-violet-400" /></div>}><AdminAltaAgent /></Suspense>}
         {activeTab === "blog" && <BlogTab adminFetch={adminFetch} />}
         {activeTab === "products" && <ProductsTab adminFetch={adminFetch} />}
@@ -123,11 +126,15 @@ export default function Admin() {
 // ────────────────────────────────────────────
 function DashboardTab({ adminFetch, onNavigate }: { adminFetch: any; onNavigate: (tab: Tab) => void }) {
   const [stats, setStats] = useState<any>(null);
+  const [visitorStats, setVisitorStats] = useState<any>(null);
   const [syncing, setSyncing] = useState(false);
   const [importing, setImporting] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
 
-  const load = () => adminFetch("/api/admin/stats").then(setStats);
+  const load = () => {
+    adminFetch("/api/admin/stats").then(setStats);
+    adminFetch("/api/admin/visitors").then(setVisitorStats).catch(() => {});
+  };
   useEffect(() => { load(); }, []);
 
   const syncOrders = async () => {
@@ -206,9 +213,9 @@ function DashboardTab({ adminFetch, onNavigate }: { adminFetch: any; onNavigate:
         </div>
       </div>
 
-      {/* Revenue & Orders Hero */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="glass rounded-xl p-5 md:col-span-1">
+      {/* Revenue, Orders, Visitors Hero */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="glass rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-green-400" />
             <p className="text-xs text-gray-500 uppercase tracking-wider">Total Revenue</p>
@@ -223,6 +230,14 @@ function DashboardTab({ adminFetch, onNavigate }: { adminFetch: any; onNavigate:
           </div>
           <p className="font-display text-3xl font-bold text-brand-400">{stats.orderCount}</p>
           <p className="text-xs text-gray-500 mt-1">{stats.needsAction || 0} need action</p>
+        </button>
+        <button onClick={() => onNavigate("visitors")} className="glass rounded-xl p-5 text-left hover:ring-1 hover:ring-cyan-500/30 transition-all cursor-pointer">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="w-5 h-5 text-cyan-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Visitors Today</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-cyan-400">{visitorStats?.today?.visitors || 0}</p>
+          <p className="text-xs text-gray-500 mt-1">{visitorStats?.today?.views || 0} page views</p>
         </button>
         <div className="glass rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
@@ -297,6 +312,134 @@ function DashboardTab({ adminFetch, onNavigate }: { adminFetch: any; onNavigate:
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────
+// Visitors Tab
+// ────────────────────────────────────────────
+function VisitorsTab({ adminFetch }: { adminFetch: any }) {
+  const [data, setData] = useState<any>(null);
+  const load = () => adminFetch("/api/admin/visitors").then(setData);
+  useEffect(() => { load(); }, []);
+
+  if (!data) return <Loading />;
+
+  const maxViews = Math.max(...(data.dailyViews || []).map((d: any) => d.views), 1);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-bold">Visitor Analytics</h1>
+        <button onClick={load} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium glass hover:bg-brand-500/10 transition-colors">
+          <RefreshCcw className="w-3.5 h-3.5" /> Refresh
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="glass rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="w-5 h-5 text-cyan-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Today</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-cyan-400">{data.today.visitors}</p>
+          <p className="text-xs text-gray-500 mt-1">{data.today.views} page views</p>
+        </div>
+        <div className="glass rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-5 h-5 text-gray-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Yesterday</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-gray-300">{data.yesterday.views}</p>
+          <p className="text-xs text-gray-500 mt-1">page views</p>
+        </div>
+        <div className="glass rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="w-5 h-5 text-emerald-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">This Week</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-emerald-400">{data.week.visitors}</p>
+          <p className="text-xs text-gray-500 mt-1">{data.week.views} page views</p>
+        </div>
+        <div className="glass rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="w-5 h-5 text-violet-400" />
+            <p className="text-xs text-gray-500 uppercase tracking-wider">This Month</p>
+          </div>
+          <p className="font-display text-3xl font-bold text-violet-400">{data.month.visitors}</p>
+          <p className="text-xs text-gray-500 mt-1">{data.month.views} page views</p>
+        </div>
+      </div>
+
+      {/* Daily Views Chart */}
+      {data.dailyViews && data.dailyViews.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">Daily Page Views (Last 30 Days)</p>
+          <div className="glass rounded-xl p-5">
+            <div className="flex items-end gap-1 h-40">
+              {data.dailyViews.map((d: any, i: number) => {
+                const height = Math.max((d.views / maxViews) * 100, 2);
+                const dateLabel = new Date(d.day + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
+                      {dateLabel}: {d.views} views, {d.visitors} visitors
+                    </div>
+                    <div className="w-full rounded-t bg-gradient-to-t from-cyan-600 to-cyan-400 transition-all hover:from-cyan-500 hover:to-cyan-300"
+                      style={{ height: `${height}%` }} />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-2 text-[10px] text-gray-600">
+              {data.dailyViews.length > 0 && (
+                <>
+                  <span>{new Date(data.dailyViews[0].day + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  <span>{new Date(data.dailyViews[data.dailyViews.length - 1].day + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Top Pages */}
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">Top Pages (This Week)</p>
+          <div className="glass rounded-xl divide-y divide-white/5">
+            {data.topPages && data.topPages.length > 0 ? data.topPages.map((p: any, i: number) => (
+              <div key={i} className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm truncate flex-1 mr-4">{p.path === "/" ? "Home" : p.path}</span>
+                <span className="text-sm font-medium text-cyan-400 shrink-0">{p.views}</span>
+              </div>
+            )) : (
+              <p className="text-gray-500 text-sm p-4">No page views recorded yet. Views will appear here as visitors browse the site.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Top Referrers */}
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-3">Top Referrers (This Month)</p>
+          <div className="glass rounded-xl divide-y divide-white/5">
+            {data.topReferrers && data.topReferrers.length > 0 ? data.topReferrers.map((r: any, i: number) => {
+              let display = r.referrer;
+              try { display = new URL(r.referrer).hostname; } catch {}
+              return (
+                <div key={i} className="flex items-center justify-between px-4 py-3">
+                  <span className="text-sm truncate flex-1 mr-4">{display}</span>
+                  <span className="text-sm font-medium text-emerald-400 shrink-0">{r.count}</span>
+                </div>
+              );
+            }) : (
+              <p className="text-gray-500 text-sm p-4">No referrer data yet. This shows where your visitors come from.</p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

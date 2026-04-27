@@ -162,4 +162,19 @@ try { sqlite.exec("ALTER TABLE orders ADD COLUMN shipping_address TEXT"); } catc
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN customer_phone TEXT"); } catch {}
 try { sqlite.exec("ALTER TABLE orders ADD COLUMN generated_report TEXT"); } catch {}
 
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS page_views (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT NOT NULL,
+    referrer TEXT,
+    user_agent TEXT,
+    session_id TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_page_views_path ON page_views(path);
+  CREATE INDEX IF NOT EXISTS idx_page_views_created_at ON page_views(created_at);
+  CREATE INDEX IF NOT EXISTS idx_page_views_session ON page_views(session_id);
+`);
+
+export const rawDb = sqlite;
 export const db = drizzle(sqlite, { schema });

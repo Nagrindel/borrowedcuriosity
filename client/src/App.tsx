@@ -1,4 +1,5 @@
 import { Route, Switch } from "wouter";
+import { usePageTracking } from "@/hooks/use-page-tracking";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import Home from "@/pages/home";
@@ -50,6 +51,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  usePageTracking();
   return (
     <AdminProvider>
       <Switch>

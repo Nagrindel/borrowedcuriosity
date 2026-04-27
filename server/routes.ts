@@ -3,7 +3,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { db } from "./db.js";
+import { db, rawDb } from "./db.js";
 import { eq, desc, and } from "drizzle-orm";
 import {
   subscribers, blogPosts, comments, products, orders, galleryItems, courses, lessons,
@@ -31,6 +31,54 @@ export function registerRoutes(app: Express) {
   // ─── Health ───
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", name: "Borrowed Curiosity" });
+  });
+
+  // ─── Page View Tracking ───
+  app.post("/api/track", (req, res) => {
+    const { path: pagePath, referrer, sessionId } = req.body;
+    if (!pagePath || typeof pagePath !== "string") return res.status(400).json({ error: "path required" });
+    const ua = req.headers["user-agent"] || "";
+    rawDb.prepare(
+      "INSERT INTO page_views (path, referrer, user_agent, session_id) VALUES (?, ?, ?, ?)"
+    ).run(pagePath, referrer || null, ua, sessionId || null);
+    res.status(204).end();
+  });
+
+  // ─── Sitemap ───
+  app.get("/sitemap.xml", (_req, res) => {
+    const baseUrl = process.env.SITE_URL || "https://www.borrowedcuriosity.org";
+    const staticPaths = [
+      "/", "/blog", "/store", "/gallery", "/threads", "/courses",
+      "/calculator", "/crystals", "/gematria", "/daily", "/compatibility",
+      "/word-lookup", "/ask-alta", "/frequencies", "/identify", "/journal",
+      "/stories", "/quiz", "/oracle", "/library", "/yoga", "/worksheets",
+      "/creator", "/transformation", "/salve-builder", "/oil-quiz", "/mirror",
+      "/healing-threads", "/remedies",
+      "/privacy", "/terms", "/refund-policy", "/disclaimer",
+    ];
+    const posts = db.select({ slug: blogPosts.slug, createdAt: blogPosts.createdAt })
+      .from(blogPosts).where(eq(blogPosts.published, true)).all();
+
+    const today = new Date().toISOString().split("T")[0];
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    for (const p of staticPaths) {
+      xml += `  <url><loc>${baseUrl}${p}</loc><lastmod>${today}</lastmod><changefreq>${p === "/" ? "daily" : "weekly"}</changefreq><priority>${p === "/" ? "1.0" : "0.7"}</priority></url>\n`;
+    }
+    for (const post of posts) {
+      const date = post.createdAt ? post.createdAt.split("T")[0] : today;
+      xml += `  <url><loc>${baseUrl}/blog/${post.slug}</loc><lastmod>${date}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>\n`;
+    }
+    xml += `</urlset>`;
+    res.set("Content-Type", "application/xml");
+    res.send(xml);
+  });
+
+  // ─── robots.txt ───
+  app.get("/robots.txt", (_req, res) => {
+    const baseUrl = process.env.SITE_URL || "https://www.borrowedcuriosity.org";
+    res.set("Content-Type", "text/plain");
+    res.send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ${baseUrl}/sitemap.xml\n`);
   });
 
   // ─── File Upload ───
@@ -192,6 +240,65 @@ export function registerRoutes(app: Express) {
     res.json({
       postCount, productCount, galleryCount, courseCount, threadCount, subCount, orderCount, commentCount,
       totalRevenue, pendingOrders, needsAction, reportsToGenerate, toShip, completedOrders, recentOrders,
+    });
+  });
+
+  // ─── Admin Visitor Stats ───
+  app.get("/api/admin/visitors", adminAuth, (_req, res) => {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const yesterday = new Date(now.getTime() - 86400000).toISOString().split("T")[0];
+    const weekAgo = new Date(now.getTime() - 7 * 86400000).toISOString().split("T")[0];
+    const monthAgo = new Date(now.getTime() - 30 * 86400000).toISOString().split("T")[0];
+
+    const viewsToday = rawDb.prepare(
+      "SELECT COUNT(*) as count FROM page_views WHERE created_at >= ?"
+    ).get(todayStr) as any;
+
+    const viewsYesterday = rawDb.prepare(
+      "SELECT COUNT(*) as count FROM page_views WHERE created_at >= ? AND created_at < ?"
+    ).get(yesterday, todayStr) as any;
+
+    const viewsWeek = rawDb.prepare(
+      "SELECT COUNT(*) as count FROM page_views WHERE created_at >= ?"
+    ).get(weekAgo) as any;
+
+    const viewsMonth = rawDb.prepare(
+      "SELECT COUNT(*) as count FROM page_views WHERE created_at >= ?"
+    ).get(monthAgo) as any;
+
+    const uniqueToday = rawDb.prepare(
+      "SELECT COUNT(DISTINCT session_id) as count FROM page_views WHERE created_at >= ? AND session_id IS NOT NULL"
+    ).get(todayStr) as any;
+
+    const uniqueWeek = rawDb.prepare(
+      "SELECT COUNT(DISTINCT session_id) as count FROM page_views WHERE created_at >= ? AND session_id IS NOT NULL"
+    ).get(weekAgo) as any;
+
+    const uniqueMonth = rawDb.prepare(
+      "SELECT COUNT(DISTINCT session_id) as count FROM page_views WHERE created_at >= ? AND session_id IS NOT NULL"
+    ).get(monthAgo) as any;
+
+    const topPages = rawDb.prepare(
+      "SELECT path, COUNT(*) as views FROM page_views WHERE created_at >= ? GROUP BY path ORDER BY views DESC LIMIT 10"
+    ).all(weekAgo) as any[];
+
+    const dailyViews = rawDb.prepare(
+      "SELECT DATE(created_at) as day, COUNT(*) as views, COUNT(DISTINCT session_id) as visitors FROM page_views WHERE created_at >= ? GROUP BY DATE(created_at) ORDER BY day DESC LIMIT 30"
+    ).all(monthAgo) as any[];
+
+    const topReferrers = rawDb.prepare(
+      "SELECT referrer, COUNT(*) as count FROM page_views WHERE created_at >= ? AND referrer IS NOT NULL AND referrer != '' GROUP BY referrer ORDER BY count DESC LIMIT 10"
+    ).all(monthAgo) as any[];
+
+    res.json({
+      today: { views: viewsToday?.count || 0, visitors: uniqueToday?.count || 0 },
+      yesterday: { views: viewsYesterday?.count || 0 },
+      week: { views: viewsWeek?.count || 0, visitors: uniqueWeek?.count || 0 },
+      month: { views: viewsMonth?.count || 0, visitors: uniqueMonth?.count || 0 },
+      topPages,
+      dailyViews: dailyViews.reverse(),
+      topReferrers,
     });
   });
 
