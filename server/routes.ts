@@ -74,6 +74,12 @@ export function registerRoutes(app: Express) {
     res.send(xml);
   });
 
+  // ─── Google Search Console Verification ───
+  app.get("/google78a5879219ee7b30.html", (_req, res) => {
+    res.set("Content-Type", "text/html");
+    res.send("google-site-verification: google78a5879219ee7b30.html");
+  });
+
   // ─── robots.txt ───
   app.get("/robots.txt", (_req, res) => {
     const baseUrl = process.env.SITE_URL || "https://www.borrowedcuriosity.org";
